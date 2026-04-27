@@ -1,0 +1,29 @@
+import Link from "next/link";
+
+export default function NotFound() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+      <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-f1-red/20 mb-8">
+        <span className="text-3xl font-black text-f1-red">404</span>
+      </div>
+      <h1 className="text-4xl font-bold text-text-primary mb-4">页面未找到</h1>
+      <p className="text-text-muted text-lg mb-8">
+        该页面可能不存在，或当前数据源暂未提供对应内容。
+      </p>
+      <div className="flex flex-wrap justify-center gap-3">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-f1-red hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+        >
+          返回首页
+        </Link>
+        <Link
+          href="/schedule"
+          className="inline-flex items-center gap-2 px-6 py-3 border border-border hover:border-f1-red text-text-secondary hover:text-text-primary rounded-lg font-medium transition-colors"
+        >
+          查看赛程
+        </Link>
+      </div>
+    </div>
+  );
+}

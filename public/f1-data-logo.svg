@@ -1,0 +1,7 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">F1.DATA</title>
+  <desc id="desc">铺满画布的透明背景 F1.DATA 图形标识</desc>
+  <path d="M6 27.5L19 12H40L35.5 17.8H24L21.5 20.8H32.5L28 26.5H17L13 31.5H5L6 27.5Z" fill="#FFFFFF" stroke="#15151E" stroke-width="1.5" stroke-linejoin="round" paint-order="stroke fill"/>
+  <path d="M38 12H45L30.5 31.5H23.5L38 12Z" fill="#E10600"/>
+  <path d="M6 39H22L26 35L31 39H43" stroke="#E10600" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
