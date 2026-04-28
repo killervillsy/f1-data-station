@@ -13,6 +13,7 @@ const navLinks = [
   { href: "/standings", label: "积分榜" },
   { href: "/drivers", label: "车手" },
   { href: "/constructors", label: "车队" },
+  { href: "/news", label: "资讯" },
   { href: "/live", label: "实时数据" },
 ];
 
