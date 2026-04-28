@@ -1,25 +1,9 @@
-import type { NewsResult } from "@/lib/news-api";
+import { fetchF1News, type NewsResult } from "@/lib/news-api";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
 async function getNews(): Promise<NewsResult> {
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
-
-  try {
-    const response = await fetch(`${baseUrl}/api/news`, {
-      next: { revalidate: 300 },
-    });
-
-    return (await response.json()) as NewsResult;
-  } catch {
-    return {
-      ok: false,
-      error: "NEWS_API_REQUEST_FAILED",
-      message: "无法加载资讯。",
-    };
-  }
+  return fetchF1News();
 }
 
 export default async function NewsPage() {
