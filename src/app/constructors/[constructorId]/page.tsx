@@ -1,6 +1,10 @@
 import ConstructorLogo from "@/components/ConstructorLogo";
 import { getConstructorLogoUrl } from "@/lib/constructor-logos";
 import {
+  getConstructorProfile,
+  getWindTunnelAllowance,
+} from "@/lib/constructor-profiles";
+import {
   getCurrentConstructorEntries,
   getCurrentDriverEntries,
 } from "@/lib/f1-api";
@@ -38,10 +42,12 @@ export default async function ConstructorPage({
     standing.Constructors.some((item) => item.constructorId === constructorId)
   );
   const displayName = translateConstructorName(constructor.name);
+  const profile = getConstructorProfile(constructor.constructorId);
+  const windTunnelAllowance = getWindTunnelAllowance(constructorStanding?.position);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
-      <div className="mb-6 flex flex-wrap gap-3">
+    <div className="max-w-5xl mx-auto px-4 py-4 sm:py-5">
+      <div className="mb-3 flex flex-wrap gap-3">
         <Link href="/constructors" className="text-f1-red hover:text-red-400 text-sm">
           ← 返回车队列表
         </Link>
@@ -50,8 +56,8 @@ export default async function ConstructorPage({
         </Link>
       </div>
 
-      <div className="bg-gradient-to-r from-f1-red to-red-700 rounded-2xl p-5 mb-8 sm:p-8">
-        <div className="flex flex-col md:flex-row md:items-center gap-6">
+      <div className="bg-gradient-to-r from-f1-red to-red-700 rounded-2xl p-4 mb-4 sm:p-5">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-5">
           <ConstructorLogo
             src={getConstructorLogoUrl(constructor)}
             alt={displayName}
@@ -78,14 +84,57 @@ export default async function ConstructorPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-3 mb-4 md:grid-cols-3">
         <StatCard label="国籍" value={translateNationality(constructor.nationality)} />
         <StatCard label="胜场" value={constructorStanding?.wins ?? "--"} />
         <StatCard label="积分" value={constructorStanding?.points ?? "--"} />
       </div>
 
-      <section className="bg-surface rounded-xl p-6 border border-border">
-        <h2 className="text-lg font-bold text-text-primary mb-4">当前车手</h2>
+      <div className="grid gap-3 mb-3 sm:mb-4 md:grid-cols-2">
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">车队资料</h2>
+          <div className="space-y-3">
+            <DetailRow label="官方全称" value={profile.fullTeamName} />
+            <DetailRow label="总部" value={profile.base} />
+            <DetailRow label="工厂地址" value={profile.factoryAddress} />
+            <DetailRow label="车队负责人" value={profile.teamChief} />
+            <DetailRow label="技术负责人" value={profile.technicalChief} />
+            <DetailRow label="赛车型号" value={profile.chassis} />
+            <DetailRow label="动力单元" value={profile.powerUnit} />
+            <DetailRow label="备用车手" value={profile.reserveDriver} />
+            <DetailRow label="主要赞助商" value={profile.primarySponsors} />
+            <DetailRow label="所有权/运营" value={profile.ownership} />
+            <DetailRow label="前身沿革" value={profile.predecessor} />
+            <DetailRow label="代表色" value={profile.teamColors} />
+            <DetailRow label="技术合作" value={profile.technicalPartners} />
+            <DetailRow label="风洞配额" value={windTunnelAllowance} />
+            <DetailRow label="首次参赛" value={profile.firstTeamEntry} />
+          </div>
+        </section>
+
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">官方车队统计</h2>
+          <div className="space-y-3">
+            <DetailRow label="大奖赛参赛" value={profile.grandPrixEntered} />
+            <DetailRow label="车队积分" value={profile.teamPoints} />
+            <DetailRow label="最高完赛" value={profile.highestRaceFinish} />
+            <DetailRow label="领奖台" value={profile.podiums} />
+            <DetailRow label="最高发车" value={profile.highestGridPosition} />
+            <DetailRow label="杆位" value={profile.polePositions} />
+            <DetailRow label="世界冠军" value={profile.worldChampionships} />
+          </div>
+        </section>
+      </div>
+
+      <section className="bg-surface rounded-xl p-3 border border-border sm:p-4 mb-4">
+        <h2 className="text-lg font-bold text-text-primary mb-3">车迷印象</h2>
+        <p className="text-sm leading-6 text-text-primary">
+          {profile.fanImpression ?? "暂无可靠资料"}
+        </p>
+      </section>
+
+      <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+        <h2 className="text-lg font-bold text-text-primary mb-3">当前车手</h2>
         {drivers.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2">
             {drivers.map((standing) => (
@@ -116,7 +165,7 @@ export default async function ConstructorPage({
         )}
       </section>
 
-      <div className="mt-6 text-center">
+      <div className="mt-4 text-center">
         <a
           href={constructor.url}
           target="_blank"
@@ -126,6 +175,17 @@ export default async function ConstructorPage({
           查看维基百科 →
         </a>
       </div>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string | undefined }) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-3 last:border-b-0 last:pb-0">
+      <span className="shrink-0 text-sm text-text-muted">{label}</span>
+      <span className="min-w-0 break-words text-right text-sm font-medium text-text-primary">
+        {value ?? "暂无可靠资料"}
+      </span>
     </div>
   );
 }

@@ -5,10 +5,10 @@ const currentYear = 2026;
 export default function Footer() {
   return (
     <footer className="bg-footer-bg border-t border-border mt-auto">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4 sm:gap-5">
           <div>
-            <Link href="/" className="flex items-center gap-2 mb-4">
+            <Link href="/" className="flex items-center gap-2 mb-3">
               <span className="text-xl font-bold text-text-primary">
                 F1<span className="text-f1-red">.</span>Data
               </span>
@@ -19,8 +19,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-text-primary font-medium mb-4">导航</h4>
-            <ul className="space-y-2">
+            <h4 className="text-text-primary font-medium mb-3">导航</h4>
+            <ul className="space-y-1.5">
               {[
                 ["/schedule", "赛程"],
                 ["/standings", "积分榜"],
@@ -38,8 +38,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-text-primary font-medium mb-4">数据来源</h4>
-            <ul className="space-y-2">
+            <h4 className="text-text-primary font-medium mb-3">数据来源</h4>
+            <ul className="space-y-1.5">
               <li>
                 <a
                   href="https://api.jolpi.ca/"
@@ -64,8 +64,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-text-primary font-medium mb-4">社区</h4>
-            <ul className="space-y-2">
+            <h4 className="text-text-primary font-medium mb-3">社区</h4>
+            <ul className="space-y-1.5">
               <li>
                 <a
                   href="https://discord.gg/y6zK5JvAn"
@@ -122,7 +122,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-border mt-8 pt-8 text-center">
+        <div className="border-t border-border mt-5 pt-5 text-center">
           <p className="text-text-subtle text-sm">
             © {currentYear} F1 数据站。数据来源: Jolpica API 和 F1 Live Timing.
           </p>

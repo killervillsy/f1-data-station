@@ -57,7 +57,7 @@ function MetricCard({
         : "text-text-primary";
 
   return (
-    <div className="rounded-xl border border-border bg-surface-elevated p-4">
+    <div className="rounded-xl border border-border bg-surface-elevated p-3">
       <p className="text-xs uppercase tracking-wide text-text-subtle">{label}</p>
       <p className={`mt-2 text-2xl font-bold ${toneClass}`}>
         {value}
@@ -199,14 +199,14 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
 
   return (
     <div className="min-h-screen bg-background text-text-primary">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-f1-red">
               实时计时
             </p>
-            <h1 className="mt-2 text-4xl font-bold">实时数据</h1>
-            <p className="mt-3 max-w-2xl text-text-muted">
+            <h1 className="mt-1 text-3xl font-bold sm:text-4xl">实时数据</h1>
+            <p className="mt-2 max-w-2xl text-text-muted">
               数据来自 F1 官方实时计时静态源，页面会每 10 秒自动刷新一次；非比赛周可能展示最近一节赛事。
             </p>
           </div>
@@ -221,8 +221,8 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
           </button>
         </div>
 
-        <section className="mb-8 grid gap-4 md:grid-cols-4">
-          <div className="rounded-2xl border border-border bg-surface p-5 md:col-span-2">
+        <section className="mb-4 grid gap-3 md:grid-cols-4">
+          <div className="rounded-2xl border border-border bg-surface p-3 md:col-span-2">
             <p className="text-sm text-text-muted">当前 / 最近场次</p>
             <h2 className="mt-2 text-2xl font-bold">
               {session?.name ?? "暂无实时赛事数据"}
@@ -234,14 +234,14 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface p-5">
+          <div className="rounded-2xl border border-border bg-surface p-3">
             <p className="text-sm text-text-muted">赛事类型</p>
             <p className="mt-2 text-2xl font-bold">
               {session?.type ?? "--"}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface p-5">
+          <div className="rounded-2xl border border-border bg-surface p-3">
             <p className="text-sm text-text-muted">最后更新</p>
             <p className="mt-2 text-2xl font-bold">
               {formatDateTime(updatedAt)}
@@ -250,13 +250,13 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
         </section>
 
         {error ? (
-          <div className="mb-6 rounded-xl border border-danger-border bg-danger-surface px-4 py-3 text-sm text-danger">
+          <div className="mb-4 rounded-xl border border-danger-border bg-danger-surface px-4 py-2 text-sm text-danger">
             {error}，保留上一次成功获取的数据。
           </div>
         ) : null}
 
-        <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <section className="rounded-2xl border border-border bg-surface p-4">
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr]">
+          <section className="rounded-2xl border border-border bg-surface p-3">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold">实时排名</h2>
               <span className="text-sm text-text-muted">
@@ -265,7 +265,7 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
             </div>
 
             {leaderboard.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border p-8 text-center text-text-muted">
+              <div className="rounded-xl border border-dashed border-border p-6 text-center text-text-muted">
                 暂无排名数据
               </div>
             ) : (
@@ -362,7 +362,7 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
             )}
           </section>
 
-          <aside ref={telemetrySectionRef} className="scroll-mt-20 rounded-2xl border border-border bg-surface p-4">
+          <aside ref={telemetrySectionRef} className="scroll-mt-20 rounded-2xl border border-border bg-surface p-3">
             <div className="mb-4">
               <h2 className="text-xl font-bold">计时数据</h2>
               <p className="mt-1 text-sm text-text-muted">
@@ -373,11 +373,11 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
             </div>
 
             {!selectedDriver ? (
-              <div className="rounded-xl border border-dashed border-border p-8 text-center text-text-muted">
+              <div className="rounded-xl border border-dashed border-border p-6 text-center text-text-muted">
                 选择排名中的车手以查看遥测。
               </div>
             ) : telemetry ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <MetricCard label="I1 测速点" value={telemetry.i1Speed ?? "--"} unit="km/h" />
                   <MetricCard label="I2 测速点" value={telemetry.i2Speed ?? "--"} unit="km/h" />
@@ -387,7 +387,7 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
                   <MetricCard label="数据源" value="官方计时" />
                 </div>
 
-                <div className="rounded-xl border border-border bg-surface-elevated p-4">
+                <div className="rounded-xl border border-border bg-surface-elevated p-3">
                   <div className="grid grid-cols-2 gap-3 text-sm text-text-secondary">
                     <span>最佳圈速</span>
                     <span className="text-right font-mono">
@@ -409,7 +409,7 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
                 </p>
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-border p-8 text-center text-text-muted">
+              <div className="rounded-xl border border-dashed border-border p-6 text-center text-text-muted">
                 暂无该车手遥测数据
               </div>
             )}

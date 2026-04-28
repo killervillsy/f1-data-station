@@ -18,8 +18,8 @@ export default async function DriversPage() {
   ]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
-      <h1 className="text-2xl font-bold text-text-primary mb-6 sm:text-3xl sm:mb-8">
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
+      <h1 className="text-2xl font-bold text-text-primary mb-4 sm:text-3xl">
         {latestSeason} 赛季车手
       </h1>
 
@@ -37,9 +37,9 @@ export default async function DriversPage() {
               <Link
                 key={driver.driverId}
                 href={`/drivers/${driver.driverId}`}
-                className="group relative bg-surface rounded-xl p-4 border border-border hover:border-f1-red/50 hover:bg-hover-surface transition-all sm:p-5"
+                className="group relative bg-surface rounded-xl p-4 border border-border hover:border-f1-red/50 hover:bg-hover-surface transition-all"
               >
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-3 mb-3">
                   <DriverHeadshot
                     src={getDriverHeadshotUrl(driver, headshots)}
                     alt={displayName}
@@ -52,7 +52,7 @@ export default async function DriversPage() {
                     </p>
                   </div>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-1.5 text-sm">
                   <InfoRow label="车号" value={driver.permanentNumber ? `#${driver.permanentNumber}` : "--"} />
                   <InfoRow label="国籍" value={translateNationality(driver.nationality)} />
                   <InfoRow label="车队" value={constructor ? translateConstructorName(constructor.name) : "暂无车队"} />
@@ -94,7 +94,7 @@ function ClickHint() {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-border p-10 text-center text-text-muted">
+    <div className="rounded-xl border border-dashed border-border p-6 text-center sm:p-8 text-text-muted">
       {message}
     </div>
   );

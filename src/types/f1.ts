@@ -36,9 +36,21 @@ export interface Race {
   Circuit: Circuit;
   date: string;
   time?: string;
+  FirstPractice?: RaceSession;
+  SecondPractice?: RaceSession;
+  ThirdPractice?: RaceSession;
+  Qualifying?: RaceSession;
+  Sprint?: RaceSession;
+  SprintQualifying?: RaceSession;
+  SprintShootout?: RaceSession;
   Results?: RaceResult[];
   results?: RaceResult[];
   QualifyingResults?: QualifyingResult[];
+}
+
+export interface RaceSession {
+  date: string;
+  time?: string;
 }
 
 export interface Circuit {

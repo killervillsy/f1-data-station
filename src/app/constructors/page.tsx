@@ -19,15 +19,15 @@ export default async function ConstructorsPage() {
   ]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
-      <h1 className="text-2xl font-bold text-text-primary mb-6 sm:text-3xl sm:mb-8">
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
+      <h1 className="text-2xl font-bold text-text-primary mb-4 sm:text-3xl">
         {latestSeason} 赛季车队
       </h1>
 
       {standings.length === 0 ? (
         <EmptyState message="暂无当前赛季车队" />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {standings.map((standing) => {
             const constructor = standing.Constructor;
             const displayName = translateConstructorName(constructor.name);
@@ -36,7 +36,7 @@ export default async function ConstructorsPage() {
               <Link
                 key={constructor.constructorId}
                 href={`/constructors/${constructor.constructorId}`}
-                className="bg-surface rounded-xl p-4 border border-border hover:border-f1-red/50 hover:bg-hover-surface transition-all group sm:p-6"
+                className="bg-surface rounded-xl p-3 border border-border hover:border-f1-red/50 hover:bg-hover-surface transition-all group sm:p-4"
               >
                 <div className="flex items-center gap-4">
                   <ConstructorLogo
@@ -50,7 +50,7 @@ export default async function ConstructorsPage() {
                       {displayName}
                     </h3>
                     <p className="break-words text-text-muted">{translateNationality(constructor.nationality)}</p>
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3 sm:gap-3">
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
                       <MiniStat label="排名" value={standing ? `P${standing.position}` : "--"} />
                       <MiniStat label="积分" value={standing?.points ?? "--"} />
                       <MiniStat label="胜场" value={standing?.wins ?? "--"} />
@@ -85,7 +85,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-border p-10 text-center text-text-muted">
+    <div className="rounded-xl border border-dashed border-border p-6 text-center sm:p-8 text-text-muted">
       {message}
     </div>
   );

@@ -29,9 +29,9 @@ export default async function Home() {
     ]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <section className="mb-12">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-f1-red to-red-700 p-6 sm:p-8 md:p-12">
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
+      <section className="mb-4">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-f1-red to-red-700 p-4 sm:p-5 md:p-6">
           <div className="relative z-10">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
               F1 数据站
@@ -48,13 +48,13 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold text-text-primary mb-6 flex items-center gap-2">
-          <span className="w-1 h-8 bg-f1-red rounded-full" />
+      <section className="mb-4">
+        <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
+          <span className="w-1 h-6 bg-f1-red rounded-full" />
           下一场比赛
         </h2>
         {nextRace ? (
-          <div className="bg-surface rounded-xl p-6 border border-border">
+          <div className="bg-surface rounded-xl p-3 border border-border sm:p-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <p className="text-f1-red text-sm font-medium mb-1">
@@ -85,9 +85,9 @@ export default async function Home() {
         )}
       </section>
 
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold text-text-primary mb-6 flex items-center gap-2">
-          <span className="w-1 h-8 bg-f1-red rounded-full" />
+      <section className="mb-4">
+        <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
+          <span className="w-1 h-6 bg-f1-red rounded-full" />
           上站成绩
           {lastRace.race && (
             <span className="text-text-muted text-lg font-normal ml-2">
@@ -167,7 +167,7 @@ export default async function Home() {
         )}
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <StandingsPreview title="车手积分榜" items={driverStandings.slice(0, 5)} type="driver" />
         <StandingsPreview title="车队积分榜" items={constructorStandings.slice(0, 5)} type="constructor" />
       </div>
@@ -251,9 +251,9 @@ function StandingsPreview({
 }) {
   return (
     <section>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-          <span className="w-1 h-8 bg-f1-red rounded-full" />
+          <span className="w-1 h-6 bg-f1-red rounded-full" />
           {title}
         </h2>
         <Link href="/standings" className="text-f1-red hover:text-red-400 text-sm">
@@ -262,7 +262,7 @@ function StandingsPreview({
       </div>
       <div className="bg-surface rounded-xl overflow-hidden border border-border">
         {items.length === 0 ? (
-          <div className="p-8">
+          <div className="p-3 sm:p-4">
             <EmptyState message={`${title}尚未公布`} />
           </div>
         ) : (

@@ -42,11 +42,10 @@ export default async function DriverPage({
   const fallbackText = driver.code || driver.familyName.slice(0, 3).toUpperCase();
   const displayName = translateDriverName(driver.givenName, driver.familyName);
   const birthDate = new Date(`${driver.dateOfBirth}T00:00:00Z`);
-  const age = Number.isNaN(birthDate.getTime())
+  const latestSeasonYear = Number(latestSeason);
+  const age = Number.isNaN(birthDate.getTime()) || !Number.isFinite(latestSeasonYear)
     ? null
-    : Math.floor(
-        (Date.now() - birthDate.getTime()) / (365.2425 * 24 * 60 * 60 * 1000)
-      );
+    : latestSeasonYear - birthDate.getUTCFullYear();
   const seasonPosition = driverStanding ? `P${driverStanding.position}` : "暂无排名";
   const zodiacSign = profile.zodiacSign ?? getZodiacSign(driver.dateOfBirth);
   const teammates = currentConstructor
@@ -60,8 +59,8 @@ export default async function DriverPage({
     : [];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
-      <div className="mb-6 flex flex-wrap gap-3">
+    <div className="max-w-5xl mx-auto px-4 py-4 sm:py-5">
+      <div className="mb-3 flex flex-wrap gap-3">
         <Link href="/drivers" className="text-f1-red hover:text-red-400 text-sm">
           ← 返回车手列表
         </Link>
@@ -70,8 +69,8 @@ export default async function DriverPage({
         </Link>
       </div>
 
-      <div className="bg-gradient-to-r from-f1-red to-red-700 rounded-2xl p-5 mb-8 sm:p-8">
-        <div className="flex flex-col md:flex-row md:items-center gap-6">
+      <div className="bg-gradient-to-r from-f1-red to-red-700 rounded-2xl p-4 mb-4 sm:p-5">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-5">
           <DriverHeadshot
             src={getDriverHeadshotUrl(driver, headshots)}
             alt={displayName}
@@ -101,16 +100,16 @@ export default async function DriverPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-8 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 mb-4 md:grid-cols-4">
         <StatCard label="车号" value={driver.permanentNumber ? `#${driver.permanentNumber}` : "--"} />
         <StatCard label="简称" value={driver.code ?? "--"} />
         <StatCard label="胜场" value={driverStanding?.wins ?? "--"} />
         <StatCard label="积分" value={driverStanding?.points ?? "--"} />
       </div>
 
-      <div className="grid gap-6 mb-6 md:grid-cols-2">
-        <section className="bg-surface rounded-xl p-6 border border-border">
-          <h2 className="text-lg font-bold text-text-primary mb-4">个人资料</h2>
+      <div className="grid gap-3 mb-3 sm:mb-4 md:grid-cols-2">
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">个人资料</h2>
           <div className="space-y-3">
             <DetailRow label="英文名" value={`${driver.givenName} ${driver.familyName}`} />
             <DetailRow label="出生日期" value={driver.dateOfBirth} />
@@ -123,8 +122,8 @@ export default async function DriverPage({
           </div>
         </section>
 
-        <section className="bg-surface rounded-xl p-6 border border-border">
-          <h2 className="text-lg font-bold text-text-primary mb-4">{latestSeason} 赛季表现</h2>
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">{latestSeason} 赛季表现</h2>
           <div className="space-y-3">
             <DetailRow label="排名" value={seasonPosition} />
             <DetailRow label="积分" value={driverStanding ? `${driverStanding.points} 分` : "暂无积分记录"} />
@@ -135,9 +134,9 @@ export default async function DriverPage({
         </section>
       </div>
 
-      <div className="grid gap-6 mb-6 md:grid-cols-2">
-        <section className="bg-surface rounded-xl p-6 border border-border">
-          <h2 className="text-lg font-bold text-text-primary mb-4">职业资料</h2>
+      <div className="grid gap-3 mb-3 sm:mb-4 md:grid-cols-2">
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">职业资料</h2>
           <div className="space-y-3">
             <DetailRow label="参赛首战" value={profile.debutRace} />
             <DetailRow label="合同情况" value={profile.contractStatus} />
@@ -148,8 +147,8 @@ export default async function DriverPage({
           </div>
         </section>
 
-        <section className="bg-surface rounded-xl p-6 border border-border">
-          <h2 className="text-lg font-bold text-text-primary mb-4">身体与个人信息</h2>
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">身体与个人信息</h2>
           <div className="space-y-3">
             <DetailRow label="身高" value={profile.height} />
             <DetailRow label="体重" value={profile.weight} />
@@ -161,16 +160,32 @@ export default async function DriverPage({
         </section>
       </div>
 
-      <section className="bg-surface rounded-xl p-6 border border-border mb-6">
-        <h2 className="text-lg font-bold text-text-primary mb-4">公开形象</h2>
-        <div className="space-y-3">
-          <DetailRow label="车迷印象" value={profile.fanImpression} />
-        </div>
-      </section>
+      <div className="grid gap-3 mb-3 sm:mb-4 md:grid-cols-2">
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">官方职业统计</h2>
+          <div className="space-y-3">
+            <DetailRow label="大奖赛出场" value={profile.grandPrixEntered} />
+            <DetailRow label="生涯积分" value={profile.careerPoints} />
+            <DetailRow label="最高完赛" value={profile.highestRaceFinish} />
+            <DetailRow label="领奖台" value={profile.podiums} />
+            <DetailRow label="最高发车" value={profile.highestGridPosition} />
+            <DetailRow label="杆位" value={profile.polePositions} />
+            <DetailRow label="世界冠军" value={profile.worldChampionships} />
+            <DetailRow label="DNF" value={profile.dnfs} />
+          </div>
+        </section>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <section className="bg-surface rounded-xl p-6 border border-border">
-          <h2 className="text-lg font-bold text-text-primary mb-4">{latestSeason} 当前车队</h2>
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">公开形象</h2>
+          <div className="space-y-3">
+            <DetailRow label="车迷印象" value={profile.fanImpression} />
+          </div>
+        </section>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">{latestSeason} 当前车队</h2>
           {currentConstructor ? (
             <Link
               href={`/constructors/${currentConstructor.constructorId}`}
@@ -194,8 +209,8 @@ export default async function DriverPage({
           )}
         </section>
 
-        <section className="bg-surface rounded-xl p-6 border border-border">
-          <h2 className="text-lg font-bold text-text-primary mb-4">队友</h2>
+        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
+          <h2 className="text-lg font-bold text-text-primary mb-3">队友</h2>
           {teammates.length > 0 ? (
             <div className="space-y-3">
               {teammates.map((teammate) => (
@@ -219,7 +234,7 @@ export default async function DriverPage({
         </section>
       </div>
 
-      <div className="mt-6 flex flex-wrap justify-center gap-4">
+      <div className="mt-4 flex flex-wrap justify-center gap-3">
         <a
           href={driver.url}
           target="_blank"

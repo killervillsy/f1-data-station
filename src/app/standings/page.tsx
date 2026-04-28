@@ -21,12 +21,12 @@ export default async function StandingsPage() {
   const leadingConstructor = constructorStandings[0];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-text-primary mb-8">
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
+      <h1 className="text-2xl font-bold text-text-primary mb-4 sm:text-3xl">
         {getCurrentSeason()} 积分榜
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 gap-3 mb-4 md:grid-cols-3">
         <SummaryCard
           label="领先车手"
           value={
@@ -48,9 +48,9 @@ export default async function StandingsPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <section>
-          <h2 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
             <span className="w-1 h-6 bg-f1-red rounded-full" />
             车手积分榜
           </h2>
@@ -132,7 +132,7 @@ export default async function StandingsPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
             <span className="w-1 h-6 bg-f1-red rounded-full" />
             车队积分榜
           </h2>
@@ -351,7 +351,7 @@ function SummaryCard({
   subValue?: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
+    <div className="rounded-xl border border-border bg-surface p-4">
       <p className="text-sm text-text-muted">{label}</p>
       <p className="mt-2 text-xl font-bold text-text-primary">{value}</p>
       {subValue ? <p className="mt-1 text-sm text-text-subtle">{subValue}</p> : null}

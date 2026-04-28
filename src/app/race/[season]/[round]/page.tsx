@@ -6,6 +6,7 @@ import {
   getRaceResults,
   getSeasonSchedule,
 } from "@/lib/f1-api";
+import { getRaceWeekendSessions } from "@/lib/race-schedule";
 import {
   translateCircuitName,
   translateConstructorName,
@@ -52,13 +53,14 @@ export default async function RacePage({
   const fastestDriverName = fastest
     ? translateDriverName(fastest.Driver.givenName, fastest.Driver.familyName)
     : "";
+  const weekendSessions = getRaceWeekendSessions(race);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
+    <div className="max-w-6xl mx-auto px-4 py-4 sm:py-5">
+      <div className="mb-4">
         <Link
           href="/schedule"
-          className="text-f1-red hover:text-red-400 text-sm mb-4 inline-block"
+          className="text-f1-red hover:text-red-400 text-sm mb-3 inline-block"
         >
           ← 返回赛程
         </Link>
@@ -72,12 +74,24 @@ export default async function RacePage({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-3 mb-4 md:grid-cols-4 sm:gap-4">
         <StatCard label="回合" value={race.round} />
         <StatCard label="赛季" value={race.season} />
         <StatCard label="参赛" value={results.length || "待公布"} />
         <StatCard label="圈数" value={results[0]?.laps || "待公布"} />
       </div>
+
+      <section className="mb-4 rounded-xl border border-border bg-surface p-3 sm:p-4">
+        <h2 className="text-lg font-bold text-text-primary mb-4">周末赛程</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {weekendSessions.map((session) => (
+            <div key={session.label} className="rounded-lg bg-surface-muted p-3">
+              <p className="text-xs text-text-subtle">{session.label}</p>
+              <p className="mt-1 text-sm font-medium text-text-primary">{session.value}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {results.length > 0 ? (
         <RaceResultsTable results={results} />
@@ -88,13 +102,13 @@ export default async function RacePage({
       {qualifyingResults.length > 0 ? (
         <QualifyingTable results={qualifyingResults} />
       ) : (
-        <div className="mt-8">
+        <div className="mt-4">
           <EmptyState title="排位赛成绩尚未公布" message="该场比赛暂未返回排位赛结果。" />
         </div>
       )}
 
       {fastest?.FastestLap && (
-        <div className="mt-8 bg-surface rounded-xl p-6 border border-border">
+        <div className="mt-4 bg-surface rounded-xl p-3 border border-border sm:p-4">
           <h2 className="text-lg font-bold text-text-primary mb-4">最快圈速</h2>
           <div className="flex items-center gap-4">
             <DriverHeadshot
@@ -117,7 +131,7 @@ export default async function RacePage({
         </div>
       )}
 
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-between">
         {previousRace ? (
           <Link
             href={`/race/${previousRace.season}/${previousRace.round}`}
@@ -157,7 +171,7 @@ function RaceResultsTable({
 }) {
   return (
     <div className="bg-surface rounded-xl overflow-hidden border border-border">
-      <h2 className="text-lg font-bold text-text-primary p-4 border-b border-border">
+      <h2 className="text-lg font-bold text-text-primary px-4 py-3 border-b border-border">
         正赛成绩
       </h2>
       <div className="divide-y divide-border sm:hidden">
@@ -266,8 +280,8 @@ function QualifyingTable({
   results: Awaited<ReturnType<typeof getQualifyingResults>>;
 }) {
   return (
-    <div className="mt-8 bg-surface rounded-xl overflow-hidden border border-border">
-      <h2 className="text-lg font-bold text-text-primary p-4 border-b border-border">
+    <div className="mt-4 bg-surface rounded-xl overflow-hidden border border-border">
+      <h2 className="text-lg font-bold text-text-primary px-4 py-3 border-b border-border">
         排位赛成绩
       </h2>
       <div className="divide-y divide-border sm:hidden">
