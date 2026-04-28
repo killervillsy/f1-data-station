@@ -91,11 +91,13 @@ export async function fetchF1News(apiKey = process.env.NEWS_API_KEY): Promise<Ne
     language: "en",
     sortBy: "publishedAt",
     pageSize: "12",
-    apiKey,
   });
 
   try {
     const response = await fetch(`${NEWS_API_ENDPOINT}?${params.toString()}`, {
+      headers: {
+        "X-Api-Key": apiKey,
+      },
       next: { revalidate: 300 },
     });
     const payload = (await response.json()) as NewsApiEverythingResponse;
