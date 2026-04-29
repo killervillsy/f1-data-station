@@ -9,6 +9,7 @@ import {
   translateDriverName,
   translateNationality,
 } from "@/lib/translations";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -47,6 +48,13 @@ export default async function DriverPage({
     ? null
     : latestSeasonYear - birthDate.getUTCFullYear();
   const seasonPosition = driverStanding ? `P${driverStanding.position}` : "暂无排名";
+  const superLicencePenaltyPoints = Number(profile.superLicencePenaltyPoints);
+  const superLicenceRemainingPoints = Number.isFinite(superLicencePenaltyPoints)
+    ? `${Math.max(0, 12 - superLicencePenaltyPoints)} 分`
+    : undefined;
+  const superLicencePenaltyPointsLabel = Number.isFinite(superLicencePenaltyPoints)
+    ? `${superLicencePenaltyPoints} 分`
+    : profile.superLicencePenaltyPoints;
   const zodiacSign = profile.zodiacSign ?? getZodiacSign(driver.dateOfBirth);
   const teammates = currentConstructor
     ? standings.filter(
@@ -141,9 +149,9 @@ export default async function DriverPage({
             <DetailRow label="参赛首战" value={profile.debutRace} />
             <DetailRow label="合同情况" value={profile.contractStatus} />
             <DetailRow label="T 架颜色" value={profile.tCamColor} />
-            <DetailRow label="超级驾照分" value={profile.superLicencePenaltyPoints} />
-            <DetailRow label="罚分周期" value={profile.penaltyPointsPeriod} />
-            <DetailRow label="签名" value={profile.signature} />
+            <DetailRow label="超级驾照分" value={superLicenceRemainingPoints} />
+            <DetailRow label="超级驾照罚分" value={superLicencePenaltyPointsLabel} />
+            <SignatureRow src={profile.signatureImageUrl} alt={`${displayName} 手写签名`} />
           </div>
         </section>
 
@@ -155,7 +163,7 @@ export default async function DriverPage({
             <DetailRow label="昵称" value={profile.nickname} />
             <DetailRow label="婚姻状况" value={profile.maritalStatus} />
             <DetailRow label="伴侣" value={profile.partner} />
-            <DetailRow label="亲友" value={profile.familyAndFriends} />
+            <DetailRow label="亲友/朋友/教父" value={profile.familyAndFriends} />
           </div>
         </section>
       </div>
@@ -263,6 +271,23 @@ function DetailRow({ label, value }: { label: string; value: string | undefined 
       <span className="min-w-0 break-words text-right text-sm font-medium text-text-primary">
         {value ?? "暂无可靠资料"}
       </span>
+    </div>
+  );
+}
+
+function SignatureRow({ src, alt }: { src: string | undefined; alt: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-3 last:border-b-0 last:pb-0">
+      <span className="shrink-0 text-sm text-text-muted">签名</span>
+      {src ? (
+        <div className="relative h-12 w-36 overflow-hidden rounded-md bg-white p-2">
+          <Image src={src} alt={alt} fill sizes="144px" unoptimized className="object-contain" />
+        </div>
+      ) : (
+        <span className="min-w-0 break-words text-right text-sm font-medium text-text-primary">
+          暂无签名图片
+        </span>
+      )}
     </div>
   );
 }
