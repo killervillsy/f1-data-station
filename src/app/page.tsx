@@ -4,7 +4,9 @@ import {
   getDriverStandings,
   getLastRaceResults,
   getNextRace,
+  getRaceDisplayDate,
   getRaceDisplayTime,
+  isRaceInProgress,
 } from "@/lib/f1-api";
 import {
   translateCircuitName,
@@ -16,8 +18,6 @@ import {
   translateRaceName,
   translateRaceStatus,
 } from "@/lib/translations";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 
 export default async function Home() {
   const [nextRace, lastRace, driverStandings, constructorStandings] =
@@ -27,16 +27,17 @@ export default async function Home() {
       getDriverStandings(),
       getConstructorStandings(),
     ]);
+  const isNextRaceInProgress = nextRace ? isRaceInProgress(nextRace) : false;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
-      <section className="mb-4">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-f1-red to-red-700 p-4 sm:p-5 md:p-6">
+    <div className="max-w-7xl mx-auto px-2 py-2 sm:px-3">
+      <section className="mb-2">
+        <div className="relative overflow-hidden rounded-md bg-gradient-to-r from-f1-red to-red-700 p-3 sm:p-4">
           <div className="relative z-10">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+            <h1 className="mb-2 text-2xl font-bold text-white sm:text-3xl">
               F1 数据站
             </h1>
-            <p className="text-white/80 text-lg max-w-2xl">
+            <p className="max-w-2xl text-sm text-white/80">
               实时追踪 F1 赛事数据、积分榜、赛程安排，深入了解每一位车手和车队
             </p>
           </div>
@@ -48,32 +49,32 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mb-4">
-        <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
-          <span className="w-1 h-6 bg-f1-red rounded-full" />
-          下一场比赛
+      <section className="mb-2">
+        <h2 className="mb-2 flex items-center gap-1.5 text-base font-bold text-text-primary">
+          <span className="h-4 w-1 rounded-full bg-f1-red" />
+          {isNextRaceInProgress ? "本场比赛" : "下一场比赛"}
         </h2>
         {nextRace ? (
-          <div className="bg-surface rounded-xl p-3 border border-border sm:p-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="rounded-md border border-border bg-surface p-2">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-f1-red text-sm font-medium mb-1">
+                <p className="mb-1 text-xs font-medium text-f1-red">
                   第 {nextRace.round} 站
                 </p>
-                <h3 className="text-2xl font-bold text-text-primary">{translateRaceName(nextRace.raceName)}</h3>
-                <p className="text-text-muted mt-1">{translateCircuitName(nextRace.Circuit.circuitName)}</p>
-                <p className="text-text-subtle text-sm mt-1">
+                <h3 className="text-base font-bold text-text-primary">{translateRaceName(nextRace.raceName)}</h3>
+                <p className="mt-0.5 text-xs text-text-muted">{translateCircuitName(nextRace.Circuit.circuitName)}</p>
+                <p className="mt-0.5 text-xs text-text-subtle">
                   {translateLocality(nextRace.Circuit.Location.locality)}, {translateCountry(nextRace.Circuit.Location.country)}
                 </p>
               </div>
               <div className="text-left md:text-right">
-                <p className="text-text-primary text-xl font-semibold">
-                  {format(new Date(nextRace.date), "MM月dd日", { locale: zhCN })}
+                <p className="text-base font-semibold text-text-primary">
+                  {getRaceDisplayDate(nextRace, "short")}
                 </p>
-                <p className="text-text-muted">{getRaceDisplayTime(nextRace)}</p>
+                <p className="text-xs text-text-muted">{getRaceDisplayTime(nextRace)}</p>
                 <Link
                   href={`/race/${nextRace.season}/${nextRace.round}`}
-                  className="mt-4 inline-flex rounded-lg bg-f1-red px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                  className="mt-2 inline-flex rounded-md bg-f1-red px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
                 >
                   查看详情
                 </Link>
@@ -85,18 +86,18 @@ export default async function Home() {
         )}
       </section>
 
-      <section className="mb-4">
-        <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
-          <span className="w-1 h-6 bg-f1-red rounded-full" />
+      <section className="mb-2">
+        <h2 className="mb-2 flex items-center gap-1.5 text-base font-bold text-text-primary">
+          <span className="h-4 w-1 rounded-full bg-f1-red" />
           上站成绩
           {lastRace.race && (
-            <span className="text-text-muted text-lg font-normal ml-2">
+            <span className="ml-1.5 text-xs font-normal text-text-muted">
               · {translateRaceName(lastRace.race.raceName)}
             </span>
           )}
         </h2>
         {lastRace.results.length > 0 ? (
-          <div className="bg-surface rounded-xl overflow-hidden border border-border">
+          <div className="overflow-hidden rounded-md border border-border bg-surface">
             <div className="divide-y divide-border sm:hidden">
               {lastRace.results.slice(0, 10).map((result) => (
                 <RaceResultMobileCard key={`${result.position}-${result.Driver.driverId}`} result={result} />
@@ -120,10 +121,10 @@ export default async function Home() {
                 <tbody className="divide-y divide-border">
                   {lastRace.results.slice(0, 10).map((result) => (
                     <tr key={`${result.position}-${result.Driver.driverId}`} className="hover:bg-hover-surface">
-                      <td className="px-3 py-2 sm:px-4 sm:py-3">
+                      <td className="px-2 py-1.5">
                         <PositionBadge position={result.position} />
                       </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-text-secondary">
+                      <td className="px-2 py-1.5 text-xs text-text-secondary">
                         <Link
                           href={`/constructors/${result.Constructor.constructorId}`}
                           className="hover:text-f1-red"
@@ -131,7 +132,7 @@ export default async function Home() {
                           {translateConstructorName(result.Constructor.name)}
                         </Link>
                       </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3">
+                      <td className="px-2 py-1.5">
                         <Link href={`/drivers/${result.Driver.driverId}`} className="hover:text-f1-red">
                           <span className="text-text-primary font-medium">
                             {translateDriverName(result.Driver.givenName, result.Driver.familyName)}
@@ -139,19 +140,19 @@ export default async function Home() {
                           <span className="text-f1-red text-xs ml-2">{result.Driver.code}</span>
                         </Link>
                       </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-text-muted">
+                      <td className="px-2 py-1.5 text-xs text-text-muted">
                         {result.Time?.time || translateRaceStatus(result.status)}
                       </td>
-                      <td className="hidden px-3 py-2 text-text-muted font-mono text-sm sm:table-cell sm:px-4 sm:py-3">
+                      <td className="hidden px-2 py-1.5 font-mono text-xs text-text-muted sm:table-cell">
                         {result.FastestLap?.Time.time ?? "--"}
                       </td>
-                      <td className="hidden px-3 py-2 text-text-secondary sm:table-cell sm:px-4 sm:py-3">
+                      <td className="hidden px-2 py-1.5 text-xs text-text-secondary sm:table-cell">
                         {formatPitStops(result.pitStops)}
                       </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-text-primary font-medium">{result.points}</td>
-                      <td className="hidden px-3 py-2 text-text-secondary sm:table-cell sm:px-4 sm:py-3">{formatGridPosition(result.grid)}</td>
-                      <td className="hidden px-3 py-2 sm:table-cell sm:px-4 sm:py-3">
-                        <div className="flex items-center gap-2 text-text-secondary">
+                      <td className="px-2 py-1.5 text-xs font-medium text-text-primary">{result.points}</td>
+                      <td className="hidden px-2 py-1.5 text-xs text-text-secondary sm:table-cell">{formatGridPosition(result.grid)}</td>
+                      <td className="hidden px-2 py-1.5 text-xs sm:table-cell">
+                        <div className="flex items-center gap-1.5 text-text-secondary">
                           <span>{formatFinishPosition(result.position)}</span>
                           <PositionChangeLabel grid={result.grid} position={result.position} />
                         </div>
@@ -167,7 +168,7 @@ export default async function Home() {
         )}
       </section>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <StandingsPreview title="车手积分榜" items={driverStandings.slice(0, 5)} type="driver" />
         <StandingsPreview title="车队积分榜" items={constructorStandings.slice(0, 5)} type="constructor" />
       </div>
@@ -185,11 +186,11 @@ function RaceResultMobileCard({
   return (
     <Link
       href={`/drivers/${result.Driver.driverId}`}
-      className="group relative block p-4 transition-colors hover:bg-hover-surface"
+      className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
       <svg
         aria-hidden="true"
-        className="absolute right-4 top-4 h-5 w-5 text-text-muted transition-colors group-hover:text-f1-red"
+        className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -197,29 +198,29 @@ function RaceResultMobileCard({
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
       </svg>
 
-      <div className="mb-3 flex items-start gap-3 pr-7">
+      <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge position={result.position} />
         <div className="min-w-0 flex-1">
-          <p className="break-words text-base font-bold text-text-primary transition-colors group-hover:text-f1-red">
+          <p className="break-words text-sm font-bold text-text-primary transition-colors group-hover:text-f1-red">
             {translateDriverName(result.Driver.givenName, result.Driver.familyName)}
             <span className="ml-2 text-xs text-f1-red">{result.Driver.code}</span>
           </p>
-          <p className="mt-1 block break-words text-sm text-text-muted">
+          <p className="mt-0.5 block break-words text-xs text-text-muted">
             {translateConstructorName(result.Constructor.name)}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-sm text-text-subtle">积分</p>
-          <p className="text-lg font-bold text-text-primary">{result.points}</p>
+          <p className="text-xs text-text-subtle">积分</p>
+          <p className="text-base font-bold text-text-primary">{result.points}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-2 gap-1.5 text-xs">
         <MobileResultField label="时间" value={result.Time?.time || translateRaceStatus(result.status)} />
         <MobileResultField label="最快圈速" value={result.FastestLap?.Time.time ?? "--"} />
         <MobileResultField label="进站" value={formatPitStops(result.pitStops)} />
         <MobileResultField label="起" value={formatGridPosition(result.grid)} />
-        <div className="rounded-lg bg-surface-muted p-3">
+        <div className="rounded bg-surface-muted p-1.5">
           <p className="text-xs text-text-subtle">停</p>
           <div className="mt-1 flex items-center gap-2 text-text-primary">
             <span className="font-medium">{formatFinishPosition(result.position)}</span>
@@ -233,9 +234,9 @@ function RaceResultMobileCard({
 
 function MobileResultField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-surface-muted p-3">
+    <div className="rounded bg-surface-muted p-1.5">
       <p className="text-xs text-text-subtle">{label}</p>
-      <p className="mt-1 break-words font-medium text-text-primary">{value}</p>
+      <p className="mt-0.5 break-words font-medium text-text-primary">{value}</p>
     </div>
   );
 }
@@ -251,16 +252,16 @@ function StandingsPreview({
 }) {
   return (
     <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-          <span className="w-1 h-6 bg-f1-red rounded-full" />
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="flex items-center gap-1.5 text-base font-bold text-text-primary">
+          <span className="h-4 w-1 rounded-full bg-f1-red" />
           {title}
         </h2>
-        <Link href="/standings" className="text-f1-red hover:text-red-400 text-sm">
+        <Link href="/standings" className="text-xs text-f1-red hover:text-red-400">
           查看全部 →
         </Link>
       </div>
-      <div className="bg-surface rounded-xl overflow-hidden border border-border">
+      <div className="overflow-hidden rounded-md border border-border bg-surface">
         {items.length === 0 ? (
           <div className="p-3 sm:p-4">
             <EmptyState message={`${title}尚未公布`} />
@@ -297,28 +298,28 @@ function StandingsPreview({
                 <Link
                   key={href}
                   href={href}
-                  className="group relative flex items-center justify-between px-4 py-3 pr-10 hover:bg-hover-surface"
+                  className="group relative flex items-center justify-between px-2 py-1.5 pr-7 hover:bg-hover-surface"
                 >
                   <svg
                     aria-hidden="true"
-                    className="absolute right-4 top-4 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red sm:hidden"
+                    className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red sm:hidden"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
-                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                  <div className="flex min-w-0 items-center gap-2">
                     <span className="w-6 shrink-0 text-center text-text-muted font-medium">
                       {standing.position}
                     </span>
                     <div className="min-w-0">
                       <p className="break-words text-text-primary font-medium transition-colors group-hover:text-f1-red">{titleText}</p>
-                      <p className="break-words text-text-subtle text-sm">{subtitle}</p>
+                      <p className="break-words text-xs text-text-subtle">{subtitle}</p>
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-text-primary font-bold">{standing.points}</p>
+                    <p className="text-sm font-bold text-text-primary">{standing.points}</p>
                     <p className="text-text-subtle text-xs">积分</p>
                     <PointsGapLabel gap={pointsGap} />
                   </div>
@@ -394,7 +395,7 @@ function TableHeader({
   className?: string;
 }) {
   return (
-    <th className={`px-3 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider ${className}`}>
+    <th className={`px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-wide text-text-muted ${className}`}>
       {children}
     </th>
   );
@@ -403,7 +404,7 @@ function TableHeader({
 function PositionBadge({ position }: { position: string }) {
   return (
     <span
-      className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
         position === "1"
           ? "bg-yellow-500 text-black"
           : position === "2"
@@ -420,7 +421,7 @@ function PositionBadge({ position }: { position: string }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-border p-8 text-center text-text-muted">
+    <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-text-muted">
       {message}
     </div>
   );

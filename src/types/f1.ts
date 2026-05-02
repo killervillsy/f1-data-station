@@ -46,6 +46,7 @@ export interface Race {
   Results?: RaceResult[];
   results?: RaceResult[];
   QualifyingResults?: QualifyingResult[];
+  SprintResults?: RaceResult[];
 }
 
 export interface RaceSession {
@@ -81,6 +82,8 @@ export interface RaceResult {
   Time?: Time;
   FastestLap?: FastestLap;
 }
+
+export type SprintResult = RaceResult;
 
 export interface QualifyingResult {
   number: string;

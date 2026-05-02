@@ -27,6 +27,7 @@ const countryTranslations: Record<string, string> = {
   UAE: "阿联酋",
   UK: "英国",
   USA: "美国",
+  "United States": "美国",
 };
 
 const raceNameTranslations: Record<string, string> = {
@@ -124,6 +125,7 @@ const localityTranslations: Record<string, string> = {
   Sakhir: "萨基尔",
   Jeddah: "吉达",
   Miami: "迈阿密",
+  "Miami Gardens": "迈阿密花园",
   Imola: "伊莫拉",
   "Monte Carlo": "蒙特卡洛",
   Montmeló: "蒙特梅洛",

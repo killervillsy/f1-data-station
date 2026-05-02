@@ -46,54 +46,54 @@ export default async function ConstructorPage({
   const windTunnelAllowance = getWindTunnelAllowance(constructorStanding?.position);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-4 sm:py-5">
-      <div className="mb-3 flex flex-wrap gap-3">
-        <Link href="/constructors" className="text-f1-red hover:text-red-400 text-sm">
+    <div className="max-w-5xl mx-auto px-2 py-2 sm:px-3">
+      <div className="mb-2 flex flex-wrap gap-2 py-1.5">
+        <Link href="/constructors" className="text-xs text-f1-red hover:text-red-400">
           ← 返回车队列表
         </Link>
-        <Link href="/standings" className="text-text-muted hover:text-text-primary text-sm">
+        <Link href="/standings" className="text-xs text-text-muted hover:text-text-primary">
           查看积分榜
         </Link>
       </div>
 
-      <div className="bg-gradient-to-r from-f1-red to-red-700 rounded-2xl p-4 mb-4 sm:p-5">
-        <div className="flex flex-col md:flex-row md:items-center gap-4 sm:gap-5">
+      <div className="mb-2 rounded-md bg-gradient-to-r from-f1-red to-red-700 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <ConstructorLogo
             src={getConstructorLogoUrl(constructor)}
             alt={displayName}
             fallbackText={constructor.name.slice(0, 3).toUpperCase()}
-            size={96}
+            size={72}
             fallbackClassName="bg-white/20"
-            textClassName="text-white font-bold text-2xl"
+            textClassName="text-white font-bold text-xl"
           />
           <div className="flex-1">
-            <h1 className="break-words text-2xl font-bold text-white sm:text-3xl md:text-4xl">
+            <h1 className="break-words text-xl font-bold text-white sm:text-2xl">
               {displayName}
             </h1>
-            <p className="text-white/80 mt-1">{translateNationality(constructor.nationality)}</p>
+            <p className="mt-0.5 text-xs text-white/80">{translateNationality(constructor.nationality)}</p>
           </div>
           <div className="text-left md:text-right">
-            <p className="text-white/80 text-sm">车队排名</p>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-xs text-white/80">车队排名</p>
+            <p className="text-xl font-bold text-white">
               {constructorStanding ? `P${constructorStanding.position}` : "暂无排名"}
             </p>
-            <p className="text-white/80 text-sm mt-2">
+            <p className="mt-1 text-xs text-white/80">
               {constructorStanding ? `${constructorStanding.points} 积分` : "暂无积分记录"}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-4 md:grid-cols-3">
+      <div className="mb-2 grid grid-cols-2 gap-1.5 md:grid-cols-3">
         <StatCard label="国籍" value={translateNationality(constructor.nationality)} />
         <StatCard label="胜场" value={constructorStanding?.wins ?? "--"} />
         <StatCard label="积分" value={constructorStanding?.points ?? "--"} />
       </div>
 
-      <div className="grid gap-3 mb-3 sm:mb-4 md:grid-cols-2">
-        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
-          <h2 className="text-lg font-bold text-text-primary mb-3">车队资料</h2>
-          <div className="space-y-3">
+      <div className="mb-2 grid gap-2 md:grid-cols-2">
+        <section className="rounded-md border border-border bg-surface p-2">
+          <h2 className="mb-2 text-base font-bold text-text-primary">车队资料</h2>
+          <div className="space-y-2">
             <DetailRow label="官方全称" value={profile.fullTeamName} />
             <DetailRow label="总部" value={profile.base} />
             <DetailRow label="工厂地址" value={profile.factoryAddress} />
@@ -112,9 +112,9 @@ export default async function ConstructorPage({
           </div>
         </section>
 
-        <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
-          <h2 className="text-lg font-bold text-text-primary mb-3">官方车队统计</h2>
-          <div className="space-y-3">
+        <section className="rounded-md border border-border bg-surface p-2">
+          <h2 className="mb-2 text-base font-bold text-text-primary">官方车队统计</h2>
+          <div className="space-y-2">
             <DetailRow label="大奖赛参赛" value={profile.grandPrixEntered} />
             <DetailRow label="车队积分" value={profile.teamPoints} />
             <DetailRow label="最高完赛" value={profile.highestRaceFinish} />
@@ -126,51 +126,51 @@ export default async function ConstructorPage({
         </section>
       </div>
 
-      <section className="bg-surface rounded-xl p-3 border border-border sm:p-4 mb-4">
-        <h2 className="text-lg font-bold text-text-primary mb-3">车迷印象</h2>
-        <p className="text-sm leading-6 text-text-primary">
+      <section className="mb-2 rounded-md border border-border bg-surface p-2">
+        <h2 className="mb-2 text-base font-bold text-text-primary">车迷印象</h2>
+        <p className="text-xs leading-5 text-text-primary">
           {profile.fanImpression ?? "暂无可靠资料"}
         </p>
       </section>
 
-      <section className="bg-surface rounded-xl p-3 border border-border sm:p-4">
-        <h2 className="text-lg font-bold text-text-primary mb-3">当前车手</h2>
+      <section className="rounded-md border border-border bg-surface p-2">
+        <h2 className="mb-2 text-base font-bold text-text-primary">当前车手</h2>
         {drivers.length > 0 ? (
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-1.5 md:grid-cols-2">
             {drivers.map((standing) => (
               <Link
                 key={standing.Driver.driverId}
                 href={`/drivers/${standing.Driver.driverId}`}
-                className="rounded-lg border border-border bg-surface-elevated p-4 hover:border-f1-red/50"
+                className="rounded border border-border bg-surface-elevated p-2 hover:border-f1-red/50"
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="break-words text-text-primary font-medium">
                       {translateDriverName(standing.Driver.givenName, standing.Driver.familyName)}
                     </p>
-                    <p className="text-text-muted text-sm">
+                    <p className="text-xs text-text-muted">
                       {standing.Driver.permanentNumber ? `#${standing.Driver.permanentNumber}` : "无固定车号"}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-f1-red font-bold">P{standing.position}</p>
-                    <p className="text-text-muted text-sm">{standing.points} 分</p>
+                    <p className="text-xs text-text-muted">{standing.points} 分</p>
                   </div>
                 </div>
               </Link>
             ))}
           </div>
         ) : (
-          <p className="text-text-muted">当前赛季暂无车手信息。</p>
+          <p className="text-xs text-text-muted">当前赛季暂无车手信息。</p>
         )}
       </section>
 
-      <div className="mt-4 text-center">
+      <div className="mt-2 text-center">
         <a
           href={constructor.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-f1-red hover:text-red-400 text-sm"
+          className="text-xs text-f1-red hover:text-red-400"
         >
           查看维基百科 →
         </a>
@@ -181,9 +181,9 @@ export default async function ConstructorPage({
 
 function DetailRow({ label, value }: { label: string; value: string | undefined }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-3 last:border-b-0 last:pb-0">
-      <span className="shrink-0 text-sm text-text-muted">{label}</span>
-      <span className="min-w-0 break-words text-right text-sm font-medium text-text-primary">
+    <div className="flex items-start justify-between gap-2 border-b border-border/60 pb-2 last:border-b-0 last:pb-0">
+      <span className="shrink-0 text-xs text-text-muted">{label}</span>
+      <span className="min-w-0 break-words text-right text-xs font-medium text-text-primary">
         {value ?? "暂无可靠资料"}
       </span>
     </div>
@@ -192,9 +192,9 @@ function DetailRow({ label, value }: { label: string; value: string | undefined 
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-surface rounded-xl p-4 border border-border text-center">
-      <p className="text-text-muted text-sm">{label}</p>
-      <p className="text-text-primary font-bold text-xl mt-1">{value}</p>
+    <div className="rounded-md border border-border bg-surface p-2 text-center">
+      <p className="text-xs text-text-muted">{label}</p>
+      <p className="mt-0.5 text-lg font-bold text-text-primary">{value}</p>
     </div>
   );
 }

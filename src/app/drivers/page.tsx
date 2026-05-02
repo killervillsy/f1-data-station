@@ -18,15 +18,15 @@ export default async function DriversPage() {
   ]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
-      <h1 className="text-2xl font-bold text-text-primary mb-4 sm:text-3xl">
+    <div className="max-w-7xl mx-auto px-2 py-2 sm:px-3">
+      <h1 className="mb-2 text-xl font-bold text-text-primary">
         {latestSeason} 赛季车手
       </h1>
 
       {standings.length === 0 ? (
         <EmptyState message="暂无当前赛季车手" />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {standings.map((standing) => {
             const driver = standing.Driver;
             const constructor = standing.Constructors[0];
@@ -37,22 +37,22 @@ export default async function DriversPage() {
               <Link
                 key={driver.driverId}
                 href={`/drivers/${driver.driverId}`}
-                className="group relative bg-surface rounded-xl p-4 border border-border hover:border-f1-red/50 hover:bg-hover-surface transition-all"
+                className="group relative rounded-md border border-border bg-surface p-2 transition-all hover:border-f1-red/50 hover:bg-hover-surface"
               >
-                <div className="flex items-center gap-3 mb-3">
+                <div className="mb-2 flex items-center gap-2">
                   <DriverHeadshot
                     src={getDriverHeadshotUrl(driver, headshots)}
                     alt={displayName}
                     fallbackText={fallbackText}
-                    size={64}
+                    size={48}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="break-words text-text-primary font-bold text-lg leading-tight group-hover:text-f1-red transition-colors sm:text-xl">
+                    <p className="break-words text-base font-bold leading-tight text-text-primary transition-colors group-hover:text-f1-red">
                       {displayName}
                     </p>
                   </div>
                 </div>
-                <div className="space-y-1.5 text-sm">
+                <div className="space-y-1 text-xs">
                   <InfoRow label="车号" value={driver.permanentNumber ? `#${driver.permanentNumber}` : "--"} />
                   <InfoRow label="国籍" value={translateNationality(driver.nationality)} />
                   <InfoRow label="车队" value={constructor ? translateConstructorName(constructor.name) : "暂无车队"} />
@@ -71,7 +71,7 @@ export default async function DriversPage() {
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-3">
+    <div className="flex justify-between gap-2">
       <span className="shrink-0 text-text-muted">{label}</span>
       <span className="min-w-0 break-words text-text-primary font-medium text-right">{value}</span>
     </div>
@@ -82,7 +82,7 @@ function ClickHint() {
   return (
     <svg
       aria-hidden="true"
-      className="absolute right-4 top-4 h-6 w-6 text-text-muted transition-colors group-hover:text-f1-red sm:hidden"
+      className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red sm:hidden"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -94,7 +94,7 @@ function ClickHint() {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-border p-6 text-center sm:p-8 text-text-muted">
+    <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-text-muted">
       {message}
     </div>
   );

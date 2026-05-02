@@ -2,11 +2,13 @@ import DriverHeadshot from "@/components/DriverHeadshot";
 import { getDriverHeadshots, getDriverHeadshotUrl } from "@/lib/driver-headshots";
 import {
   getQualifyingResults,
+  getRaceDisplayDate,
   getRaceDisplayTime,
   getRaceResults,
   getSeasonSchedule,
+  getSprintResults,
 } from "@/lib/f1-api";
-import { getRaceWeekendSessions } from "@/lib/race-schedule";
+import { getRaceWeekendSessions, type RaceWeekendSession } from "@/lib/race-schedule";
 import {
   translateCircuitName,
   translateConstructorName,
@@ -17,8 +19,6 @@ import {
   translateRaceStatus,
 } from "@/lib/translations";
 import { notFound } from "next/navigation";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import Link from "next/link";
 
 export const dynamicParams = true;
@@ -30,10 +30,16 @@ export async function generateStaticParams() {
 
 export default async function RacePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ season: string; round: string }>;
+  searchParams: Promise<{ session?: string | string[] }>;
 }) {
   const { season, round } = await params;
+  const selectedSessionParam = (await searchParams).session;
+  const selectedSessionType = Array.isArray(selectedSessionParam)
+    ? selectedSessionParam[0]
+    : selectedSessionParam;
   const schedule = await getSeasonSchedule(season);
   const raceIndex = schedule.findIndex((item) => item.round === round);
   const race = schedule[raceIndex];
@@ -42,9 +48,10 @@ export default async function RacePage({
     notFound();
   }
 
-  const [results, qualifyingResults, headshots] = await Promise.all([
-    getRaceResults(season, round),
+  const [results, qualifyingResults, sprintResults, headshots] = await Promise.all([
+    getRaceResults(season, round).catch(() => []),
     getQualifyingResults(season, round).catch(() => []),
+    getSprintResults(season, round).catch(() => []),
     getDriverHeadshots(),
   ]);
   const previousRace = schedule[raceIndex - 1];
@@ -54,63 +61,69 @@ export default async function RacePage({
     ? translateDriverName(fastest.Driver.givenName, fastest.Driver.familyName)
     : "";
   const weekendSessions = getRaceWeekendSessions(race);
+  const selectedSession = getSelectedSession(weekendSessions, selectedSessionType);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-4 sm:py-5">
-      <div className="mb-4">
+    <div className="max-w-6xl mx-auto px-2 py-2 sm:px-3">
+      <div className="mb-2">
         <Link
           href="/schedule"
-          className="text-f1-red hover:text-red-400 text-sm mb-3 inline-block"
+          className="mb-1.5 inline-block text-xs text-f1-red hover:text-red-400"
         >
           ← 返回赛程
         </Link>
-        <h1 className="break-words text-2xl font-bold text-text-primary mt-2 sm:text-3xl">{translateRaceName(race.raceName)}</h1>
-        <p className="text-text-muted mt-1">{translateCircuitName(race.Circuit.circuitName)}</p>
-        <p className="text-text-subtle text-sm">
+        <h1 className="mt-1 break-words text-xl font-bold text-text-primary">{translateRaceName(race.raceName)}</h1>
+        <p className="mt-0.5 text-xs text-text-muted">{translateCircuitName(race.Circuit.circuitName)}</p>
+        <p className="text-xs text-text-subtle">
           {translateLocality(race.Circuit.Location.locality)}, {translateCountry(race.Circuit.Location.country)}
         </p>
-        <p className="text-text-subtle text-sm mt-1">
-          {format(new Date(race.date), "yyyy年MM月dd日", { locale: zhCN })} · {getRaceDisplayTime(race)}
+        <p className="mt-0.5 text-xs text-text-subtle">
+          {getRaceDisplayDate(race)} · {getRaceDisplayTime(race)}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-4 md:grid-cols-4 sm:gap-4">
+      <div className="mb-2 grid grid-cols-2 gap-1.5 md:grid-cols-4">
         <StatCard label="回合" value={race.round} />
         <StatCard label="赛季" value={race.season} />
         <StatCard label="参赛" value={results.length || "待公布"} />
         <StatCard label="圈数" value={results[0]?.laps || "待公布"} />
       </div>
 
-      <section className="mb-4 rounded-xl border border-border bg-surface p-3 sm:p-4">
-        <h2 className="text-lg font-bold text-text-primary mb-4">周末赛程</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {weekendSessions.map((session) => (
-            <div key={session.label} className="rounded-lg bg-surface-muted p-3">
-              <p className="text-xs text-text-subtle">{session.label}</p>
-              <p className="mt-1 text-sm font-medium text-text-primary">{session.value}</p>
-            </div>
-          ))}
+      <section className="mb-2 rounded-md border border-border bg-surface p-2">
+        <h2 className="mb-2 text-base font-bold text-text-primary">周末赛程</h2>
+        <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+          {weekendSessions.map((session) => {
+            const isSelected = session.type === selectedSession.type;
+
+            return (
+              <Link
+                key={session.label}
+                href={`/race/${season}/${round}?session=${session.type}`}
+                className={`rounded border p-1.5 transition-colors ${
+                  isSelected
+                    ? "border-f1-red bg-f1-red/10"
+                    : "border-transparent bg-surface-muted hover:border-f1-red/60"
+                }`}
+              >
+                <p className={isSelected ? "text-xs text-f1-red" : "text-xs text-text-subtle"}>{session.label}</p>
+                <p className="mt-0.5 text-xs font-medium text-text-primary">{session.value}</p>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
-      {results.length > 0 ? (
-        <RaceResultsTable results={results} />
-      ) : (
-        <EmptyState title="正赛成绩尚未公布" message="比赛存在于赛程中，但当前还没有可用的正赛结果。" />
-      )}
-
-      {qualifyingResults.length > 0 ? (
-        <QualifyingTable results={qualifyingResults} />
-      ) : (
-        <div className="mt-4">
-          <EmptyState title="排位赛成绩尚未公布" message="该场比赛暂未返回排位赛结果。" />
-        </div>
-      )}
+      <SessionResultsSection
+        session={selectedSession}
+        raceResults={results}
+        qualifyingResults={qualifyingResults}
+        sprintResults={sprintResults}
+      />
 
       {fastest?.FastestLap && (
-        <div className="mt-4 bg-surface rounded-xl p-3 border border-border sm:p-4">
-          <h2 className="text-lg font-bold text-text-primary mb-4">最快圈速</h2>
-          <div className="flex items-center gap-4">
+        <div className="mt-2 rounded-md border border-border bg-surface p-2">
+          <h2 className="mb-2 text-base font-bold text-text-primary">最快圈速</h2>
+          <div className="flex items-center gap-2">
             <DriverHeadshot
               src={getDriverHeadshotUrl(fastest.Driver, headshots)}
               alt={fastestDriverName}
@@ -135,7 +148,7 @@ export default async function RacePage({
         {previousRace ? (
           <Link
             href={`/race/${previousRace.season}/${previousRace.round}`}
-            className="rounded-lg border border-border px-4 py-3 text-center text-text-secondary hover:border-f1-red hover:text-text-primary sm:text-left"
+            className="rounded-md border border-border px-3 py-1.5 text-center text-xs text-text-secondary hover:border-f1-red hover:text-text-primary sm:text-left"
           >
             ← 上一站：{translateRaceName(previousRace.raceName)}
           </Link>
@@ -145,7 +158,7 @@ export default async function RacePage({
         {nextRace ? (
           <Link
             href={`/race/${nextRace.season}/${nextRace.round}`}
-            className="rounded-lg border border-border px-4 py-3 text-center text-text-secondary hover:border-f1-red hover:text-text-primary sm:text-right"
+            className="rounded-md border border-border px-3 py-1.5 text-center text-xs text-text-secondary hover:border-f1-red hover:text-text-primary sm:text-right"
           >
             下一站：{translateRaceName(nextRace.raceName)} →
           </Link>
@@ -157,22 +170,74 @@ export default async function RacePage({
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="bg-surface rounded-xl p-4 border border-border text-center">
-      <p className="text-text-muted text-sm">{label}</p>
-      <p className="text-text-primary font-bold text-2xl">{value}</p>
+    <div className="rounded-md border border-border bg-surface p-2 text-center">
+      <p className="text-xs text-text-muted">{label}</p>
+      <p className="text-lg font-bold text-text-primary">{value}</p>
     </div>
   );
 }
 
+function getSelectedSession(
+  sessions: RaceWeekendSession[],
+  selectedType: string | undefined
+): RaceWeekendSession {
+  return (
+    sessions.find((session) => session.type === selectedType) ??
+    sessions.find((session) => session.type === "race") ??
+    sessions[0]
+  );
+}
+
+function SessionResultsSection({
+  session,
+  raceResults,
+  qualifyingResults,
+  sprintResults,
+}: {
+  session: RaceWeekendSession;
+  raceResults: Awaited<ReturnType<typeof getRaceResults>>;
+  qualifyingResults: Awaited<ReturnType<typeof getQualifyingResults>>;
+  sprintResults: Awaited<ReturnType<typeof getSprintResults>>;
+}) {
+  switch (session.type) {
+    case "race":
+      return raceResults.length > 0 ? (
+        <RaceResultsTable results={raceResults} />
+      ) : (
+        <EmptyState title="正赛成绩尚未公布" message="比赛存在于赛程中，但当前还没有可用的正赛结果。" />
+      );
+    case "qualifying":
+      return qualifyingResults.length > 0 ? (
+        <QualifyingTable results={qualifyingResults} />
+      ) : (
+        <EmptyState title="排位赛成绩尚未公布" message="该场比赛暂未返回排位赛结果。" />
+      );
+    case "sprint":
+      return sprintResults.length > 0 ? (
+        <RaceResultsTable title="冲刺赛成绩" results={sprintResults} />
+      ) : (
+        <EmptyState title="冲刺赛成绩尚未公布" message="该场比赛暂未返回冲刺赛结果。" />
+      );
+    case "sprintQualifying":
+      return <EmptyState title="冲刺排位成绩暂不可用" message="当前数据源暂未提供冲刺排位成绩。" />;
+    case "practice1":
+    case "practice2":
+    case "practice3":
+      return <EmptyState title={`${session.label}成绩暂不可用`} message="当前数据源暂未提供练习赛成绩。" />;
+  }
+}
+
 function RaceResultsTable({
   results,
+  title = "正赛成绩",
 }: {
   results: Awaited<ReturnType<typeof getRaceResults>>;
+  title?: string;
 }) {
   return (
-    <div className="bg-surface rounded-xl overflow-hidden border border-border">
-      <h2 className="text-lg font-bold text-text-primary px-4 py-3 border-b border-border">
-        正赛成绩
+    <div className="overflow-hidden rounded-md border border-border bg-surface">
+      <h2 className="border-b border-border px-2 py-1.5 text-base font-bold text-text-primary">
+        {title}
       </h2>
       <div className="divide-y divide-border sm:hidden">
         {results.map((result) => (
@@ -199,12 +264,12 @@ function RaceResultsTable({
           <tbody className="divide-y divide-border">
             {results.map((result) => (
               <tr key={`${result.position}-${result.Driver.driverId}`} className="hover:bg-hover-surface">
-                <td className="px-3 py-2 sm:px-4 sm:py-3">
+                <td className="px-2 py-1.5">
                   <PositionBadge value={result.positionText || result.position} position={result.position} />
                 </td>
-                <td className="hidden px-3 py-2 text-text-secondary sm:table-cell sm:px-4 sm:py-3">{result.grid}</td>
-                <td className="hidden px-3 py-2 text-text-secondary sm:table-cell sm:px-4 sm:py-3">{result.number}</td>
-                <td className="px-3 py-2 sm:px-4 sm:py-3">
+                <td className="hidden px-2 py-1.5 text-xs text-text-secondary sm:table-cell">{result.grid}</td>
+                <td className="hidden px-2 py-1.5 text-xs text-text-secondary sm:table-cell">{result.number}</td>
+                <td className="px-2 py-1.5">
                   <Link href={`/drivers/${result.Driver.driverId}`} className="hover:text-f1-red">
                     <p className="text-text-primary font-medium">
                       {translateDriverName(result.Driver.givenName, result.Driver.familyName)}
@@ -212,19 +277,19 @@ function RaceResultsTable({
                     <p className="text-f1-red text-xs">{result.Driver.code}</p>
                   </Link>
                 </td>
-                <td className="hidden px-3 py-2 sm:table-cell sm:px-4 sm:py-3">
+                <td className="hidden px-2 py-1.5 sm:table-cell">
                   <Link
                     href={`/constructors/${result.Constructor.constructorId}`}
-                    className="text-text-secondary hover:text-f1-red text-sm"
+                    className="text-xs text-text-secondary hover:text-f1-red"
                   >
                     {translateConstructorName(result.Constructor.name)}
                   </Link>
                 </td>
-                <td className="hidden px-3 py-2 text-center text-text-secondary sm:table-cell sm:px-4 sm:py-3">{result.laps}</td>
-                <td className="px-3 py-2 sm:px-4 sm:py-3 text-right text-text-muted text-sm">
+                <td className="hidden px-2 py-1.5 text-center text-xs text-text-secondary sm:table-cell">{result.laps}</td>
+                <td className="px-2 py-1.5 text-right text-xs text-text-muted">
                   {result.Time?.time || <span className="text-red-400">{translateRaceStatus(result.status)}</span>}
                 </td>
-                <td className="px-3 py-2 sm:px-4 sm:py-3 text-right">
+                <td className="px-2 py-1.5 text-right">
                   <span className="text-text-primary font-bold">{result.points}</span>
                 </td>
               </tr>
@@ -244,27 +309,27 @@ function RaceResultMobileCard({
   return (
     <Link
       href={`/drivers/${result.Driver.driverId}`}
-      className="group relative block p-4 transition-colors hover:bg-hover-surface"
+      className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
       <CardArrow />
-      <div className="mb-3 flex items-start gap-3 pr-7">
+      <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge value={result.positionText || result.position} position={result.position} />
         <div className="min-w-0 flex-1">
-          <p className="break-words text-base font-bold text-text-primary transition-colors group-hover:text-f1-red">
+          <p className="break-words text-sm font-bold text-text-primary transition-colors group-hover:text-f1-red">
             {translateDriverName(result.Driver.givenName, result.Driver.familyName)}
             <span className="ml-2 text-xs text-f1-red">{result.Driver.code}</span>
           </p>
-          <p className="mt-1 block break-words text-sm text-text-muted">
+          <p className="mt-0.5 block break-words text-xs text-text-muted">
             {translateConstructorName(result.Constructor.name)}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-sm text-text-subtle">积分</p>
-          <p className="text-lg font-bold text-text-primary">{result.points}</p>
+          <p className="text-xs text-text-subtle">积分</p>
+          <p className="text-base font-bold text-text-primary">{result.points}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-2 gap-1.5 text-xs">
         <MobileResultField label="发车" value={result.grid} />
         <MobileResultField label="车号" value={result.number} />
         <MobileResultField label="圈数" value={result.laps} />
@@ -276,13 +341,15 @@ function RaceResultMobileCard({
 
 function QualifyingTable({
   results,
+  title = "排位赛成绩",
 }: {
   results: Awaited<ReturnType<typeof getQualifyingResults>>;
+  title?: string;
 }) {
   return (
-    <div className="mt-4 bg-surface rounded-xl overflow-hidden border border-border">
-      <h2 className="text-lg font-bold text-text-primary px-4 py-3 border-b border-border">
-        排位赛成绩
+    <div className="overflow-hidden rounded-md border border-border bg-surface">
+      <h2 className="border-b border-border px-2 py-1.5 text-base font-bold text-text-primary">
+        {title}
       </h2>
       <div className="divide-y divide-border sm:hidden">
         {results.map((result) => (
@@ -308,11 +375,11 @@ function QualifyingTable({
           <tbody className="divide-y divide-border">
             {results.map((result) => (
               <tr key={`${result.position}-${result.Driver.driverId}`} className="hover:bg-hover-surface">
-                <td className="px-3 py-2 sm:px-4 sm:py-3">
+                <td className="px-2 py-1.5">
                   <PositionBadge value={result.position} position={result.position} />
                 </td>
-                <td className="hidden px-3 py-2 text-text-secondary sm:table-cell sm:px-4 sm:py-3">{result.number}</td>
-                <td className="px-3 py-2 sm:px-4 sm:py-3">
+                <td className="hidden px-2 py-1.5 text-xs text-text-secondary sm:table-cell">{result.number}</td>
+                <td className="px-2 py-1.5">
                   <Link href={`/drivers/${result.Driver.driverId}`} className="hover:text-f1-red">
                     <p className="text-text-primary font-medium">
                       {translateDriverName(result.Driver.givenName, result.Driver.familyName)}
@@ -320,17 +387,17 @@ function QualifyingTable({
                     <p className="text-f1-red text-xs">{result.Driver.code}</p>
                   </Link>
                 </td>
-                <td className="hidden px-3 py-2 sm:table-cell sm:px-4 sm:py-3">
+                <td className="hidden px-2 py-1.5 sm:table-cell">
                   <Link
                     href={`/constructors/${result.Constructor.constructorId}`}
-                    className="text-text-secondary hover:text-f1-red text-sm"
+                    className="text-xs text-text-secondary hover:text-f1-red"
                   >
                     {translateConstructorName(result.Constructor.name)}
                   </Link>
                 </td>
-                <td className="px-3 py-2 sm:px-4 sm:py-3 text-right text-text-secondary">{result.Q1 || "--"}</td>
-                <td className="px-3 py-2 sm:px-4 sm:py-3 text-right text-text-secondary">{result.Q2 || "--"}</td>
-                <td className="px-3 py-2 sm:px-4 sm:py-3 text-right text-text-secondary">{result.Q3 || "--"}</td>
+                <td className="px-2 py-1.5 text-right text-xs text-text-secondary">{result.Q1 || "--"}</td>
+                <td className="px-2 py-1.5 text-right text-xs text-text-secondary">{result.Q2 || "--"}</td>
+                <td className="px-2 py-1.5 text-right text-xs text-text-secondary">{result.Q3 || "--"}</td>
               </tr>
             ))}
           </tbody>
@@ -348,27 +415,27 @@ function QualifyingMobileCard({
   return (
     <Link
       href={`/drivers/${result.Driver.driverId}`}
-      className="group relative block p-4 transition-colors hover:bg-hover-surface"
+      className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
       <CardArrow />
-      <div className="mb-3 flex items-start gap-3 pr-7">
+      <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge value={result.position} position={result.position} />
         <div className="min-w-0 flex-1">
-          <p className="break-words text-base font-bold text-text-primary transition-colors group-hover:text-f1-red">
+          <p className="break-words text-sm font-bold text-text-primary transition-colors group-hover:text-f1-red">
             {translateDriverName(result.Driver.givenName, result.Driver.familyName)}
             <span className="ml-2 text-xs text-f1-red">{result.Driver.code}</span>
           </p>
-          <p className="mt-1 block break-words text-sm text-text-muted">
+          <p className="mt-0.5 block break-words text-xs text-text-muted">
             {translateConstructorName(result.Constructor.name)}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-sm text-text-subtle">车号</p>
-          <p className="text-lg font-bold text-text-primary">{result.number}</p>
+          <p className="text-xs text-text-subtle">车号</p>
+          <p className="text-base font-bold text-text-primary">{result.number}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 text-sm">
+      <div className="grid grid-cols-3 gap-1.5 text-xs">
         <MobileResultField label="Q1" value={result.Q1 || "--"} />
         <MobileResultField label="Q2" value={result.Q2 || "--"} />
         <MobileResultField label="Q3" value={result.Q3 || "--"} />
@@ -379,9 +446,9 @@ function QualifyingMobileCard({
 
 function MobileResultField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-surface-muted p-3">
+    <div className="rounded bg-surface-muted p-1.5">
       <p className="text-xs text-text-subtle">{label}</p>
-      <p className="mt-1 break-words font-medium text-text-primary">{value}</p>
+      <p className="mt-0.5 break-words font-medium text-text-primary">{value}</p>
     </div>
   );
 }
@@ -390,7 +457,7 @@ function CardArrow() {
   return (
     <svg
       aria-hidden="true"
-      className="absolute right-4 top-4 h-5 w-5 text-text-muted transition-colors group-hover:text-f1-red"
+      className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -413,7 +480,7 @@ function TableHeader({
     align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
 
   return (
-    <th className={`px-3 py-2 text-xs font-medium text-text-muted uppercase sm:px-4 sm:py-3 ${alignClass} ${className}`}>
+    <th className={`px-2 py-1.5 text-[10px] font-medium uppercase text-text-muted ${alignClass} ${className}`}>
       {children}
     </th>
   );
@@ -422,7 +489,7 @@ function TableHeader({
 function PositionBadge({ value, position }: { value: string; position: string }) {
   return (
     <span
-      className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
         position === "1"
           ? "bg-yellow-500 text-black"
           : position === "2"
@@ -439,9 +506,9 @@ function PositionBadge({ value, position }: { value: string; position: string })
 
 function EmptyState({ title, message }: { title: string; message: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center">
-      <h2 className="text-lg font-bold text-text-primary">{title}</h2>
-      <p className="mt-2 text-text-muted">{message}</p>
+    <div className="rounded-md border border-dashed border-border bg-surface p-4 text-center">
+      <h2 className="text-base font-bold text-text-primary">{title}</h2>
+      <p className="mt-1 text-xs text-text-muted">{message}</p>
     </div>
   );
 }

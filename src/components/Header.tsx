@@ -70,8 +70,8 @@ export default function Header() {
 
   return (
     <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 bg-header-bg backdrop-blur border-b border-border">
-      <div className="relative max-w-7xl mx-auto px-4">
-        <div className="flex h-12 items-center justify-between gap-2">
+      <div className="relative max-w-7xl mx-auto px-2 sm:px-3">
+        <div className="flex h-10 items-center justify-between gap-1.5">
           <Link href="/" className="flex min-w-0 items-center gap-2" aria-label="返回 F1.Data 首页">
             <Image
               src="/f1-data-logo.svg"
@@ -79,9 +79,9 @@ export default function Header() {
               width={48}
               height={48}
               priority
-              className="h-8 w-auto sm:h-9"
+              className="h-7 w-auto sm:h-8"
             />
-            <span className="truncate text-lg font-black leading-none tracking-tight text-text-primary sm:text-xl">
+            <span className="truncate text-base font-black leading-none tracking-tight text-text-primary sm:text-lg">
               F1<span className="text-f1-red">.</span>Data
             </span>
           </Link>
@@ -93,7 +93,7 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
                     active
                       ? "bg-f1-red text-white"
                       : "text-text-muted hover:text-text-primary hover:bg-hover-surface"
@@ -117,7 +117,7 @@ export default function Header() {
                 aria-expanded={isThemeMenuOpen}
                 aria-label={`选择主题，当前：${themeLabel}`}
                 title={`主题：${themeLabel}`}
-                className="group flex h-8 cursor-pointer items-center gap-1 rounded-full border border-border bg-surface/90 px-1.5 text-xs text-text-muted shadow-sm backdrop-blur transition-all hover:border-f1-red hover:bg-hover-surface hover:text-text-primary hover:shadow-md focus:border-f1-red focus:outline-none sm:px-2"
+                className="group flex h-7 cursor-pointer items-center gap-1 rounded-full border border-border bg-surface/90 px-1.5 text-[11px] text-text-muted shadow-sm backdrop-blur transition-all hover:border-f1-red hover:bg-hover-surface hover:text-text-primary hover:shadow-md focus:border-f1-red focus:outline-none sm:px-2"
               >
                 <span className="hidden h-5 w-5 items-center justify-center rounded-full bg-surface-muted text-f1-red transition-colors group-hover:bg-selected-surface sm:flex">
                   <svg
@@ -152,7 +152,7 @@ export default function Header() {
                 role="listbox"
                 aria-label="主题选项"
                 aria-hidden={!isThemeMenuOpen}
-                className={`absolute right-0 z-50 mt-2 w-36 origin-top-right overflow-hidden rounded-xl border border-border bg-surface/95 p-1.5 shadow-xl backdrop-blur transition-all duration-200 ease-out ${
+                className={`absolute right-0 z-50 mt-1.5 w-32 origin-top-right overflow-hidden rounded-md border border-border bg-surface/95 p-1 shadow-xl backdrop-blur transition-all duration-200 ease-out ${
                   isThemeMenuOpen
                     ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
                     : "pointer-events-none -translate-y-2 scale-95 opacity-0"
@@ -169,7 +169,7 @@ export default function Header() {
                       aria-selected={selected}
                       tabIndex={isThemeMenuOpen ? 0 : -1}
                       onClick={() => handleThemeChange(option.value)}
-                      className={`flex w-full cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm transition-colors ${
+                      className={`flex w-full cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1.5 text-left text-xs transition-colors ${
                         selected
                           ? "border-f1-red bg-menu-option-selected text-text-primary"
                           : "border-border text-text-muted hover:border-f1-red hover:bg-menu-option-hover hover:text-text-primary"
@@ -203,7 +203,7 @@ export default function Header() {
 
             <button
               type="button"
-              className="md:hidden text-text-primary p-2"
+              className="p-1.5 text-text-primary md:hidden"
               aria-label="打开导航菜单"
               aria-controls="mobile-navigation"
               aria-expanded={isOpen}
@@ -213,7 +213,7 @@ export default function Header() {
               }}
             >
               <svg
-                className="w-6 h-6"
+                className="h-5 w-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -232,13 +232,13 @@ export default function Header() {
         <nav
           id="mobile-navigation"
           aria-hidden={!isOpen}
-          className={`absolute left-0 top-full z-40 w-full origin-top border-b border-border bg-header-bg px-4 py-4 shadow-xl backdrop-blur transition-all duration-200 ease-out md:hidden ${
+          className={`absolute left-0 top-full z-40 w-full origin-top border-b border-border bg-header-bg px-2 py-2 shadow-xl backdrop-blur transition-all duration-200 ease-out md:hidden ${
             isOpen
               ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
               : "pointer-events-none -translate-y-2 scale-95 opacity-0"
           }`}
         >
-          <div className="grid gap-2">
+          <div className="grid gap-1.5">
             {navLinks.map((link) => {
               const active = isActivePath(pathname, link.href);
               return (
@@ -247,7 +247,7 @@ export default function Header() {
                   href={link.href}
                   onClick={closeMenus}
                   tabIndex={isOpen ? 0 : -1}
-                  className={`rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+                  className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                     active
                       ? "bg-f1-red text-white"
                       : "text-text-muted hover:bg-hover-surface hover:text-text-primary"

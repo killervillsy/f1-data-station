@@ -8,6 +8,7 @@ import type {
   ConstructorStanding,
   RaceResult,
   QualifyingResult,
+  SprintResult,
 } from "@/types/f1";
 
 const BASE_URL = "https://api.jolpi.ca/ergast/f1";
@@ -45,6 +46,38 @@ export function getRaceDateTime(race: Race): Date {
   return new Date(`${race.date}T${race.time || "23:59:59Z"}`);
 }
 
+export function getRaceDisplayDate(
+  race: Race,
+  format: "long" | "short" = "long",
+): string {
+  if (!race.time) return formatApiDate(race.date, format);
+
+  const { year, month, day } = getShanghaiDateParts(getRaceDateTime(race));
+
+  return format === "long" ? `${year}年${month}月${day}日` : `${month}月${day}日`;
+}
+
+function formatApiDate(date: string, format: "long" | "short") {
+  const [year, month, day] = date.split("-");
+
+  return format === "long" ? `${year}年${month}月${day}日` : `${month}月${day}日`;
+}
+
+function getShanghaiDateParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Shanghai",
+  }).formatToParts(date);
+
+  return {
+    year: parts.find((part) => part.type === "year")?.value ?? "",
+    month: parts.find((part) => part.type === "month")?.value ?? "",
+    day: parts.find((part) => part.type === "day")?.value ?? "",
+  };
+}
+
 export function getRaceDisplayTime(race: Race): string {
   if (!race.time) return "时间待定";
 
@@ -62,12 +95,39 @@ export function getRaceResultsFromRace(race: Race | undefined): RaceResult[] {
 
 export type RaceStatus = "completed" | "today" | "upcoming";
 
+const raceDurationMs = 3 * 60 * 60 * 1000;
+
+export function isRaceInProgress(race: Race, now = new Date()): boolean {
+  const weekendStartTime = getRaceWeekendStartTime(race);
+  const raceTime = getRaceDateTime(race).getTime();
+  const currentTime = now.getTime();
+
+  return weekendStartTime <= currentTime && currentTime <= raceTime + raceDurationMs;
+}
+
+function getRaceWeekendStartTime(race: Race): number {
+  return [
+    race.FirstPractice,
+    race.SecondPractice,
+    race.ThirdPractice,
+    race.SprintQualifying,
+    race.SprintShootout,
+    race.Sprint,
+    race.Qualifying,
+    race,
+  ].reduce((earliest, session) => {
+    if (!session?.time) return earliest;
+
+    return Math.min(earliest, new Date(`${session.date}T${session.time}`).getTime());
+  }, getRaceDateTime(race).getTime());
+}
+
 export function classifyRaceStatus(race: Race, now = new Date()): RaceStatus {
   const raceDateTime = getRaceDateTime(race);
   const raceDay = race.date;
   const today = now.toISOString().slice(0, 10);
 
-  if (raceDateTime.getTime() < now.getTime() - 3 * 60 * 60 * 1000) {
+  if (raceDateTime.getTime() < now.getTime() - raceDurationMs) {
     return "completed";
   }
 
@@ -110,6 +170,15 @@ export async function getQualifyingResults(
   const data = await fetchF1Data<MRData>(`/${season}/${round}/qualifying`);
 
   return data.RaceTable?.Races[0]?.QualifyingResults || [];
+}
+
+export async function getSprintResults(
+  season: string,
+  round: string
+): Promise<SprintResult[]> {
+  const data = await fetchF1Data<MRData>(`/${season}/${round}/sprint`);
+
+  return data.RaceTable?.Races[0]?.SprintResults || [];
 }
 
 // Get driver standings
@@ -210,13 +279,12 @@ export async function getLastRaceResults(): Promise<{
 }
 
 // Get next race
-export async function getNextRace(): Promise<Race | null> {
+export async function getNextRace(now = new Date()): Promise<Race | null> {
   const data = await fetchF1Data<MRData>(`/${getCurrentSeason()}`);
   const races = data.RaceTable?.Races || [];
 
-  const now = new Date();
   for (const race of races) {
-    if (getRaceDateTime(race) > now) {
+    if (isRaceInProgress(race, now) || getRaceDateTime(race) > now) {
       return race;
     }
   }

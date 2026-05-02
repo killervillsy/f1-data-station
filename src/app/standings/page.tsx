@@ -21,12 +21,12 @@ export default async function StandingsPage() {
   const leadingConstructor = constructorStandings[0];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5">
-      <h1 className="text-2xl font-bold text-text-primary mb-4 sm:text-3xl">
+    <div className="max-w-7xl mx-auto px-2 py-2 sm:px-3">
+      <h1 className="mb-2 text-xl font-bold text-text-primary">
         {getCurrentSeason()} 积分榜
       </h1>
 
-      <div className="grid grid-cols-1 gap-3 mb-4 md:grid-cols-3">
+      <div className="mb-2 grid grid-cols-1 gap-1.5 md:grid-cols-3">
         <SummaryCard
           label="领先车手"
           value={
@@ -48,16 +48,16 @@ export default async function StandingsPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         <section>
-          <h2 className="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
-            <span className="w-1 h-6 bg-f1-red rounded-full" />
+          <h2 className="mb-2 flex items-center gap-1.5 text-base font-bold text-text-primary">
+            <span className="h-4 w-1 rounded-full bg-f1-red" />
             车手积分榜
           </h2>
           {driverStandings.length === 0 ? (
             <EmptyState message="当前赛季车手积分榜尚未公布" />
           ) : (
-            <div className="bg-surface rounded-xl overflow-hidden border border-border">
+            <div className="overflow-hidden rounded-md border border-border bg-surface">
               <div className="divide-y divide-border sm:hidden">
                 {driverStandings.map((standing, index) => (
                   <DriverStandingMobileCard
@@ -88,10 +88,10 @@ export default async function StandingsPage() {
 
                       return (
                         <tr key={standing.Driver.driverId} className="hover:bg-hover-surface">
-                          <td className="px-3 py-2 sm:px-4 sm:py-3">
+                          <td className="px-2 py-1.5">
                             <PositionBadge position={standing.position} />
                           </td>
-                          <td className="px-3 py-2 sm:px-4 sm:py-3">
+                          <td className="px-2 py-1.5">
                             <Link
                               href={`/drivers/${standing.Driver.driverId}`}
                               className="hover:text-f1-red"
@@ -104,7 +104,7 @@ export default async function StandingsPage() {
                               </p>
                             </Link>
                           </td>
-                          <td className="px-3 py-2 sm:px-4 sm:py-3 text-text-secondary text-sm">
+                          <td className="px-2 py-1.5 text-xs text-text-secondary">
                             {constructor ? (
                               <Link
                                 href={`/constructors/${constructor.constructorId}`}
@@ -116,9 +116,9 @@ export default async function StandingsPage() {
                               "--"
                             )}
                           </td>
-                          <td className="hidden px-3 py-2 text-center text-text-primary sm:table-cell sm:px-4 sm:py-3">{standing.wins}</td>
-                          <td className="px-3 py-2 sm:px-4 sm:py-3 text-right">
-                            <span className="text-text-primary font-bold text-lg">{standing.points}</span>
+                          <td className="hidden px-2 py-1.5 text-center text-xs text-text-primary sm:table-cell">{standing.wins}</td>
+                          <td className="px-2 py-1.5 text-right">
+                            <span className="text-sm font-bold text-text-primary">{standing.points}</span>
                             <PointsGapLabel gap={pointsGap} />
                           </td>
                         </tr>
@@ -132,14 +132,14 @@ export default async function StandingsPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
-            <span className="w-1 h-6 bg-f1-red rounded-full" />
+          <h2 className="mb-2 flex items-center gap-1.5 text-base font-bold text-text-primary">
+            <span className="h-4 w-1 rounded-full bg-f1-red" />
             车队积分榜
           </h2>
           {constructorStandings.length === 0 ? (
             <EmptyState message="当前赛季车队积分榜尚未公布" />
           ) : (
-            <div className="bg-surface rounded-xl overflow-hidden border border-border">
+            <div className="overflow-hidden rounded-md border border-border bg-surface">
               <div className="divide-y divide-border sm:hidden">
                 {constructorStandings.map((standing, index) => (
                   <ConstructorStandingMobileCard
@@ -169,10 +169,10 @@ export default async function StandingsPage() {
 
                       return (
                         <tr key={standing.Constructor.constructorId} className="hover:bg-hover-surface">
-                          <td className="px-3 py-2 sm:px-4 sm:py-3">
+                          <td className="px-2 py-1.5">
                             <PositionBadge position={standing.position} />
                           </td>
-                          <td className="px-3 py-2 sm:px-4 sm:py-3">
+                          <td className="px-2 py-1.5">
                             <Link
                               href={`/constructors/${standing.Constructor.constructorId}`}
                               className="text-text-primary font-medium hover:text-f1-red"
@@ -180,12 +180,12 @@ export default async function StandingsPage() {
                               {translateConstructorName(standing.Constructor.name)}
                             </Link>
                           </td>
-                          <td className="hidden px-3 py-2 text-text-secondary text-sm sm:table-cell sm:px-4 sm:py-3">
+                          <td className="hidden px-2 py-1.5 text-xs text-text-secondary sm:table-cell">
                             {translateNationality(standing.Constructor.nationality)}
                           </td>
-                          <td className="hidden px-3 py-2 text-center text-text-primary sm:table-cell sm:px-4 sm:py-3">{standing.wins}</td>
-                          <td className="px-3 py-2 sm:px-4 sm:py-3 text-right">
-                            <span className="text-text-primary font-bold text-lg">{standing.points}</span>
+                          <td className="hidden px-2 py-1.5 text-center text-xs text-text-primary sm:table-cell">{standing.wins}</td>
+                          <td className="px-2 py-1.5 text-right">
+                            <span className="text-sm font-bold text-text-primary">{standing.points}</span>
                             <PointsGapLabel gap={pointsGap} />
                           </td>
                         </tr>
@@ -218,11 +218,11 @@ function DriverStandingMobileCard({
   return (
     <Link
       href={`/drivers/${standing.Driver.driverId}`}
-      className="group relative block p-4 transition-colors hover:bg-hover-surface"
+      className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
       <svg
         aria-hidden="true"
-        className="absolute right-4 top-4 h-5 w-5 text-text-muted transition-colors group-hover:text-f1-red"
+        className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -230,27 +230,27 @@ function DriverStandingMobileCard({
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
       </svg>
 
-      <div className="mb-3 flex items-start gap-3 pr-7">
+      <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge position={standing.position} />
         <div className="min-w-0 flex-1">
-          <p className="break-words text-base font-bold text-text-primary transition-colors group-hover:text-f1-red">
+          <p className="break-words text-sm font-bold text-text-primary transition-colors group-hover:text-f1-red">
             {translateDriverName(standing.Driver.givenName, standing.Driver.familyName)}
           </p>
           <p className="mt-1 text-xs text-f1-red">
             {standing.Driver.code} {standing.Driver.permanentNumber ? `#${standing.Driver.permanentNumber}` : ""}
           </p>
-          <p className="mt-2 break-words text-sm text-text-muted">
+          <p className="mt-1 break-words text-xs text-text-muted">
             {constructor ? translateConstructorName(constructor.name) : "--"}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-sm text-text-subtle">积分</p>
-          <p className="text-lg font-bold text-text-primary">{standing.points}</p>
+          <p className="text-xs text-text-subtle">积分</p>
+          <p className="text-base font-bold text-text-primary">{standing.points}</p>
           <PointsGapLabel gap={pointsGap} />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-2 gap-1.5 text-xs">
         <StandingMobileField label="胜场" value={standing.wins} />
         <StandingMobileField label="排名" value={`P${standing.position}`} />
       </div>
@@ -273,11 +273,11 @@ function ConstructorStandingMobileCard({
   return (
     <Link
       href={`/constructors/${standing.Constructor.constructorId}`}
-      className="group relative block p-4 transition-colors hover:bg-hover-surface"
+      className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
       <svg
         aria-hidden="true"
-        className="absolute right-4 top-4 h-5 w-5 text-text-muted transition-colors group-hover:text-f1-red"
+        className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -285,10 +285,10 @@ function ConstructorStandingMobileCard({
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
       </svg>
 
-      <div className="mb-3 flex items-start gap-3 pr-7">
+      <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge position={standing.position} />
         <div className="min-w-0 flex-1">
-          <p className="break-words text-base font-bold text-text-primary transition-colors group-hover:text-f1-red">
+          <p className="break-words text-sm font-bold text-text-primary transition-colors group-hover:text-f1-red">
             {translateConstructorName(standing.Constructor.name)}
           </p>
           <p className="mt-1 break-words text-sm text-text-muted">
@@ -296,13 +296,13 @@ function ConstructorStandingMobileCard({
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-sm text-text-subtle">积分</p>
-          <p className="text-lg font-bold text-text-primary">{standing.points}</p>
+          <p className="text-xs text-text-subtle">积分</p>
+          <p className="text-base font-bold text-text-primary">{standing.points}</p>
           <PointsGapLabel gap={pointsGap} />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-2 gap-1.5 text-xs">
         <StandingMobileField label="胜场" value={standing.wins} />
         <StandingMobileField label="排名" value={`P${standing.position}`} />
       </div>
@@ -312,9 +312,9 @@ function ConstructorStandingMobileCard({
 
 function StandingMobileField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-surface-muted p-3">
+    <div className="rounded bg-surface-muted p-1.5">
       <p className="text-xs text-text-subtle">{label}</p>
-      <p className="mt-1 break-words font-medium text-text-primary">{value}</p>
+      <p className="mt-0.5 break-words font-medium text-text-primary">{value}</p>
     </div>
   );
 }
@@ -351,10 +351,10 @@ function SummaryCard({
   subValue?: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
-      <p className="text-sm text-text-muted">{label}</p>
-      <p className="mt-2 text-xl font-bold text-text-primary">{value}</p>
-      {subValue ? <p className="mt-1 text-sm text-text-subtle">{subValue}</p> : null}
+    <div className="rounded-md border border-border bg-surface p-2">
+      <p className="text-xs text-text-muted">{label}</p>
+      <p className="mt-1 text-base font-bold text-text-primary">{value}</p>
+      {subValue ? <p className="mt-0.5 text-xs text-text-subtle">{subValue}</p> : null}
     </div>
   );
 }
@@ -371,7 +371,7 @@ function TableHeader({
   const alignClass = align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
 
   return (
-    <th className={`px-3 py-2 text-xs font-medium text-text-muted uppercase sm:px-4 sm:py-3 ${alignClass} ${className}`}>
+    <th className={`px-2 py-1.5 text-[10px] font-medium uppercase text-text-muted ${alignClass} ${className}`}>
       {children}
     </th>
   );
@@ -380,7 +380,7 @@ function TableHeader({
 function PositionBadge({ position }: { position: string }) {
   return (
     <span
-      className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
         position === "1"
           ? "bg-yellow-500 text-black"
           : position === "2"
@@ -397,7 +397,7 @@ function PositionBadge({ position }: { position: string }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-border p-8 text-center text-text-muted">
+    <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-text-muted">
       {message}
     </div>
   );
