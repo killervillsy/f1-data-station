@@ -131,11 +131,25 @@ export function classifyRaceStatus(race: Race, now = new Date()): RaceStatus {
     return "completed";
   }
 
-  if (raceDay === today) {
+  if (raceDay === today || hasSessionOnDate(race, today)) {
     return "today";
   }
 
   return "upcoming";
+}
+
+function hasSessionOnDate(race: Race, date: string): boolean {
+  const sessions = [
+    race.FirstPractice,
+    race.SecondPractice,
+    race.ThirdPractice,
+    race.SprintQualifying,
+    race.SprintShootout,
+    race.Sprint,
+    race.Qualifying,
+  ];
+
+  return sessions.some((session) => session?.date === date);
 }
 
 // Get current season races (schedule)

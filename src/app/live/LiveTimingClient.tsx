@@ -22,15 +22,24 @@ type LiveTimingClientProps = {
 function formatDateTime(value: string | null | undefined): string {
   if (!value) return "--";
 
-  return new Intl.DateTimeFormat("en-US", {
+  const dateTime = new Date(value);
+  const date = new Intl.DateTimeFormat("zh-CN", {
     month: "2-digit",
     day: "2-digit",
+    timeZone: "Asia/Shanghai",
+  })
+    .format(dateTime)
+    .replace(/^(\d{2})\/(\d{2})$/, "$1月$2日");
+
+  const time = new Intl.DateTimeFormat("zh-CN", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-    hour12: true,
+    hour12: false,
     timeZone: "Asia/Shanghai",
-  }).format(new Date(value));
+  }).format(dateTime);
+
+  return `${date} ${time}`;
 }
 
 function formatTelemetryDate(value: string | null | undefined): string {
@@ -38,10 +47,17 @@ function formatTelemetryDate(value: string | null | undefined): string {
   return `遥测时间 ${formatDateTime(value)}`;
 }
 
-function formatLeaderboardGap(driver: LiveLeaderboardItem): string {
-  if (driver.position === 1) return driver.lastLapTime || driver.gapToLeader || "--";
+function formatLeaderboardGap(driver: LiveLeaderboardItem, sessionType?: string): string {
+  const isRaceSession = sessionType === "冲刺赛" || sessionType === "正赛";
 
-  return driver.interval || driver.bestLapTime || driver.lastLapTime || "--";
+  if (driver.position === 1) {
+    if (isRaceSession) {
+      return driver.gapToLeader || "--";
+    }
+    return driver.bestLapTime || driver.lastLapTime || "--";
+  }
+
+  return driver.interval || driver.gapToLeader || "--";
 }
 
 function MetricCard({
@@ -328,7 +344,7 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
                               <div className="min-w-0 flex-1">
                                 <p className="break-words font-medium text-text-primary">{driver.team}</p>
                                 <p className="mt-0.5 break-words text-xs text-text-subtle">
-                                  {formatLeaderboardGap(driver)}
+                                  {formatLeaderboardGap(driver, session?.type)}
                                 </p>
                               </div>
                             </div>
@@ -354,7 +370,7 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
                           <span>
                             <span className="block">{driver.team}</span>
                             <span className="block text-xs text-text-subtle">
-                              {formatLeaderboardGap(driver)}
+                              {formatLeaderboardGap(driver, session?.type)}
                             </span>
                           </span>
                         </span>

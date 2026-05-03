@@ -61,7 +61,13 @@ export default async function RacePage({
     ? translateDriverName(fastest.Driver.givenName, fastest.Driver.familyName)
     : "";
   const weekendSessions = getRaceWeekendSessions(race);
-  const selectedSession = getSelectedSession(weekendSessions, selectedSessionType);
+  const selectedSession = getSelectedSession(
+    weekendSessions,
+    selectedSessionType,
+    results,
+    qualifyingResults,
+    sprintResults
+  );
 
   return (
     <div className="max-w-6xl mx-auto px-2 py-2 sm:px-3">
@@ -179,10 +185,35 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 
 function getSelectedSession(
   sessions: RaceWeekendSession[],
-  selectedType: string | undefined
+  selectedType: string | undefined,
+  raceResults: Awaited<ReturnType<typeof getRaceResults>>,
+  qualifyingResults: Awaited<ReturnType<typeof getQualifyingResults>>,
+  sprintResults: Awaited<ReturnType<typeof getSprintResults>>
 ): RaceWeekendSession {
+  if (selectedType) {
+    const selected = sessions.find((session) => session.type === selectedType);
+    if (selected) return selected;
+  }
+
+  const hasResults = (type: string) => {
+    switch (type) {
+      case "race":
+        return raceResults.length > 0;
+      case "qualifying":
+        return qualifyingResults.length > 0;
+      case "sprint":
+        return sprintResults.length > 0;
+      default:
+        return false;
+    }
+  };
+
+  const sessionsWithResults = sessions
+    .filter((session) => session.supportsResults && hasResults(session.type))
+    .reverse();
+
   return (
-    sessions.find((session) => session.type === selectedType) ??
+    sessionsWithResults[0] ??
     sessions.find((session) => session.type === "race") ??
     sessions[0]
   );
