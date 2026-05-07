@@ -23,6 +23,31 @@ function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function ThemeIcon({ theme, className = "h-3.5 w-3.5" }: { theme: ThemePreference; className?: string }) {
+  if (theme === "light") {
+    return (
+      <svg aria-hidden="true" className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.36-6.36-1.42 1.42M7.06 16.94l-1.42 1.42m12.72 0-1.42-1.42M7.06 7.06 5.64 5.64" />
+        <circle cx="12" cy="12" r="4" strokeWidth={2} />
+      </svg>
+    );
+  }
+
+  if (theme === "dark") {
+    return (
+      <svg aria-hidden="true" className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg aria-hidden="true" className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5h16v10H4zM8 19h8m-4-4v4" />
+    </svg>
+  );
+}
+
 export default function Header() {
   const pathname = usePathname();
   const { themePreference, setThemePreference, mounted } = useTheme();
@@ -132,9 +157,10 @@ export default function Header() {
                 </span>
                 <span className="hidden text-[11px] font-medium sm:inline">主题</span>
                 <span className="hidden h-3.5 w-px bg-border sm:block" />
-                <span className="min-w-7 text-left font-semibold text-text-primary sm:min-w-14">
-                  {themeLabel}
+                <span className="flex min-w-5 items-center justify-center text-text-primary" aria-hidden="true">
+                  <ThemeIcon theme={displayPreference} />
                 </span>
+                <span className="sr-only">{themeLabel}</span>
                 <svg
                   aria-hidden="true"
                   className={`h-3 w-3 text-text-subtle transition-all group-hover:text-f1-red ${
@@ -152,7 +178,7 @@ export default function Header() {
                 role="listbox"
                 aria-label="主题选项"
                 aria-hidden={!isThemeMenuOpen}
-                className={`absolute right-0 z-50 mt-1.5 w-32 origin-top-right overflow-hidden rounded-md border border-border bg-surface/95 p-1 shadow-xl backdrop-blur transition-all duration-200 ease-out ${
+                className={`absolute right-0 z-50 mt-1.5 w-32 origin-top-right overflow-hidden rounded-md border border-border bg-surface-elevated p-1 shadow-xl backdrop-blur transition-all duration-200 ease-out ${
                   isThemeMenuOpen
                     ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
                     : "pointer-events-none -translate-y-2 scale-95 opacity-0"
@@ -191,6 +217,9 @@ export default function Header() {
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
+                      </span>
+                      <span className="flex items-center justify-center text-text-primary" aria-hidden="true">
+                        <ThemeIcon theme={option.value} className="h-4 w-4" />
                       </span>
                       <span className="font-semibold leading-tight text-text-primary">
                         {option.label}

@@ -1,9 +1,9 @@
 export type ThemePreference = "system" | "light" | "dark";
 
 export const themeLabels: Record<ThemePreference, string> = {
-  system: "系统",
-  light: "浅色",
-  dark: "深色",
+  system: "跟随系统",
+  light: "浅色模式",
+  dark: "深色模式",
 };
 
 export const themeOptions: Array<{
@@ -11,8 +11,8 @@ export const themeOptions: Array<{
   label: string;
 }> = [
   { value: "system", label: "跟随系统" },
-  { value: "light", label: "浅色" },
-  { value: "dark", label: "深色" },
+  { value: "light", label: "浅色模式" },
+  { value: "dark", label: "深色模式" },
 ];
 
 export function isThemePreference(value: string | null): value is ThemePreference {
