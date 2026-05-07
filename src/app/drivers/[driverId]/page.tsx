@@ -1,5 +1,7 @@
 import ConstructorLogo from "@/components/ConstructorLogo";
+import DetailRow from "@/components/DetailRow";
 import DriverHeadshot from "@/components/DriverHeadshot";
+import StatCard from "@/components/StatCard";
 import { getConstructorLogoUrl } from "@/lib/constructor-logos";
 import { getDriverHeadshots, getDriverHeadshotUrl } from "@/lib/driver-headshots";
 import { getDriverProfile, getZodiacSign } from "@/lib/driver-profiles";
@@ -9,6 +11,7 @@ import {
   translateDriverName,
   translateNationality,
 } from "@/lib/translations";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,7 +20,43 @@ export const dynamicParams = true;
 export const revalidate = 300;
 
 export async function generateStaticParams() {
-  return [];
+  try {
+    const standings = await getCurrentDriverEntries();
+
+    return standings.map((standing) => ({
+      driverId: standing.Driver.driverId,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ driverId: string }>;
+}): Promise<Metadata> {
+  const { driverId } = await params;
+  const standings = await getCurrentDriverEntries().catch(() => []);
+  const driverStanding = standings.find((standing) => standing.Driver.driverId === driverId);
+  const driver = driverStanding?.Driver;
+
+  if (!driver) {
+    return {
+      title: "车手资料",
+      description: "查看 F1 车手资料、当前车队、排名和积分。",
+    };
+  }
+
+  const displayName = translateDriverName(driver.givenName, driver.familyName);
+  const constructor = driverStanding?.Constructors[0];
+  const constructorName = constructor ? translateConstructorName(constructor.name) : "暂无车队";
+
+  return {
+    title: `${displayName} | F1 车手资料`,
+    description: `${displayName} 是来自${translateNationality(driver.nationality)}的 F1 车手，当前车队：${constructorName}，排名 P${driverStanding.position}，${driverStanding.points} 积分。`,
+    alternates: { canonical: `/drivers/${driverId}` },
+  };
 }
 
 export default async function DriverPage({
@@ -27,7 +66,7 @@ export default async function DriverPage({
 }) {
   const { driverId } = await params;
   const [standings, headshots, latestSeason] = await Promise.all([
-    getCurrentDriverEntries(),
+    getCurrentDriverEntries().catch(() => []),
     getDriverHeadshots(),
     getLatestSeason(),
   ]);
@@ -110,10 +149,10 @@ export default async function DriverPage({
       </div>
 
       <div className="mb-2 grid grid-cols-2 gap-1.5 md:grid-cols-4">
-        <StatCard label="车号" value={driver.permanentNumber ? `#${driver.permanentNumber}` : "--"} />
-        <StatCard label="简称" value={driver.code ?? "--"} />
-        <StatCard label="胜场" value={driverStanding?.wins ?? "--"} />
-        <StatCard label="积分" value={driverStanding?.points ?? "--"} />
+        <StatCard align="center" label="车号" value={driver.permanentNumber ? `#${driver.permanentNumber}` : "--"} />
+        <StatCard align="center" label="简称" value={driver.code ?? "--"} />
+        <StatCard align="center" label="胜场" value={driverStanding?.wins ?? "--"} />
+        <StatCard align="center" label="积分" value={driverStanding?.points ?? "--"} />
       </div>
 
       <div className="mb-2 grid gap-2 md:grid-cols-2">
@@ -265,17 +304,6 @@ export default async function DriverPage({
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string | undefined }) {
-  return (
-    <div className="flex items-start justify-between gap-2 border-b border-border/60 pb-2 last:border-b-0 last:pb-0">
-      <span className="shrink-0 text-xs text-text-muted">{label}</span>
-      <span className="min-w-0 break-words text-right text-xs font-medium text-text-primary">
-        {value ?? "暂无可靠资料"}
-      </span>
-    </div>
-  );
-}
-
 function SignatureRow({ src, alt }: { src: string | undefined; alt: string }) {
   return (
     <div className="flex items-start justify-between gap-2 border-b border-border/60 pb-2 last:border-b-0 last:pb-0">
@@ -293,11 +321,3 @@ function SignatureRow({ src, alt }: { src: string | undefined; alt: string }) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-border bg-surface p-2 text-center">
-      <p className="text-xs text-text-muted">{label}</p>
-      <p className="mt-0.5 text-lg font-bold text-text-primary">{value}</p>
-    </div>
-  );
-}

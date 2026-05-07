@@ -1,3 +1,5 @@
+import CardArrow from "@/components/CardArrow";
+import type { Metadata } from "next";
 import ConstructorLogo from "@/components/ConstructorLogo";
 import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
@@ -11,6 +13,12 @@ import {
   translateNationality,
 } from "@/lib/translations";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "车队",
+  description: "浏览当前 F1 赛季车队名单、国籍、排名、胜场和积分。",
+  alternates: { canonical: "/constructors" },
+};
 
 export const revalidate = 300;
 
@@ -56,14 +64,7 @@ export default async function ConstructorsPage() {
                       <MiniStat label="胜场" value={standing?.wins ?? "--"} />
                     </div>
                   </div>
-                  <svg
-                    className="h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <CardArrow />
                 </div>
               </Link>
             );

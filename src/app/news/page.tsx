@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
 import { fetchF1News, type NewsResult } from "@/lib/news-api";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
+
+export const metadata: Metadata = {
+  title: "F1 资讯",
+  description: "汇总 Formula 1 最新报道、围场动态、赛事新闻和车队车手资讯。",
+  alternates: { canonical: "/news" },
+};
 
 async function getNews(): Promise<NewsResult> {
   return fetchF1News();
@@ -52,6 +59,8 @@ function NewsContent({ news }: { news: Extract<NewsResult, { ok: true }> }) {
               <img
                 src={article.imageUrl}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             </div>

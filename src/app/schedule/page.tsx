@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
@@ -20,6 +21,12 @@ import {
   translateRaceName,
 } from "@/lib/translations";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "赛程",
+  description: "查看当前 F1 赛季完整赛程、比赛时间、赛道信息和周末各节安排。",
+  alternates: { canonical: "/schedule" },
+};
 
 export const revalidate = 300;
 

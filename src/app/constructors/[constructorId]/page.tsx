@@ -1,4 +1,6 @@
 import ConstructorLogo from "@/components/ConstructorLogo";
+import DetailRow from "@/components/DetailRow";
+import StatCard from "@/components/StatCard";
 import { getConstructorLogoUrl } from "@/lib/constructor-logos";
 import {
   getConstructorProfile,
@@ -13,11 +15,52 @@ import {
   translateDriverName,
   translateNationality,
 } from "@/lib/translations";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export const dynamicParams = true;
 export const revalidate = 300;
+
+export async function generateStaticParams() {
+  try {
+    const standings = await getCurrentConstructorEntries();
+
+    return standings.map((standing) => ({
+      constructorId: standing.Constructor.constructorId,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ constructorId: string }>;
+}): Promise<Metadata> {
+  const { constructorId } = await params;
+  const standings = await getCurrentConstructorEntries().catch(() => []);
+  const constructorStanding = standings.find(
+    (standing) => standing.Constructor.constructorId === constructorId
+  );
+  const constructor = constructorStanding?.Constructor;
+
+  if (!constructor) {
+    return {
+      title: "车队资料",
+      description: "查看 F1 车队资料、国籍、排名、胜场和积分。",
+    };
+  }
+
+  const displayName = translateConstructorName(constructor.name);
+
+  return {
+    title: `${displayName} | F1 车队资料`,
+    description: `${displayName} 是来自${translateNationality(constructor.nationality)}的 F1 车队，当前排名 P${constructorStanding.position}，${constructorStanding.points} 积分，${constructorStanding.wins} 场胜利。`,
+    alternates: { canonical: `/constructors/${constructorId}` },
+  };
+}
 
 export default async function ConstructorPage({
   params,
@@ -26,8 +69,8 @@ export default async function ConstructorPage({
 }) {
   const { constructorId } = await params;
   const [constructorStandings, driverStandings] = await Promise.all([
-    getCurrentConstructorEntries(),
-    getCurrentDriverEntries(),
+    getCurrentConstructorEntries().catch(() => []),
+    getCurrentDriverEntries().catch(() => []),
   ]);
   const constructorStanding = constructorStandings.find(
     (standing) => standing.Constructor.constructorId === constructorId
@@ -86,9 +129,9 @@ export default async function ConstructorPage({
       </div>
 
       <div className="mb-2 grid grid-cols-2 gap-1.5 md:grid-cols-3">
-        <StatCard label="国籍" value={translateNationality(constructor.nationality)} />
-        <StatCard label="胜场" value={constructorStanding?.wins ?? "--"} />
-        <StatCard label="积分" value={constructorStanding?.points ?? "--"} />
+        <StatCard align="center" label="国籍" value={translateNationality(constructor.nationality)} />
+        <StatCard align="center" label="胜场" value={constructorStanding?.wins ?? "--"} />
+        <StatCard align="center" label="积分" value={constructorStanding?.points ?? "--"} />
       </div>
 
       <div className="mb-2 grid gap-2 md:grid-cols-2">
@@ -180,22 +223,3 @@ export default async function ConstructorPage({
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string | undefined }) {
-  return (
-    <div className="flex items-start justify-between gap-2 border-b border-border/60 pb-2 last:border-b-0 last:pb-0">
-      <span className="shrink-0 text-xs text-text-muted">{label}</span>
-      <span className="min-w-0 break-words text-right text-xs font-medium text-text-primary">
-        {value ?? "暂无可靠资料"}
-      </span>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-border bg-surface p-2 text-center">
-      <p className="text-xs text-text-muted">{label}</p>
-      <p className="mt-0.5 text-lg font-bold text-text-primary">{value}</p>
-    </div>
-  );
-}

@@ -5,6 +5,9 @@ import type { LiveTimingSnapshot } from "@/types/openf1";
 export const dynamic = "force-dynamic";
 
 const LIVE_SNAPSHOT_CACHE_TTL_MS = 5_000;
+const LIVE_RESPONSE_HEADERS = {
+  "Cache-Control": "no-store, max-age=0",
+};
 
 const liveSnapshotCache = new Map<
   string,
@@ -63,8 +66,10 @@ export async function GET(request: Request) {
         : null;
     const snapshot = await getCachedLiveSnapshot(driverNumber);
 
-    return Response.json(snapshot);
+    return Response.json(snapshot, { headers: LIVE_RESPONSE_HEADERS });
   } catch {
-    return Response.json(fallbackSnapshot("F1 官方实时计时数据加载失败"));
+    return Response.json(fallbackSnapshot("F1 官方实时计时数据加载失败"), {
+      headers: LIVE_RESPONSE_HEADERS,
+    });
   }
 }

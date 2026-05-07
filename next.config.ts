@@ -7,10 +7,14 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "media.formula1.com",
+        port: "",
+        pathname: "/image/upload/**",
       },
       {
         protocol: "https",
         hostname: "upload.wikimedia.org",
+        port: "",
+        pathname: "/wikipedia/commons/**",
       },
     ],
   },

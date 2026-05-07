@@ -1,4 +1,9 @@
+import CardArrow from "@/components/CardArrow";
 import EmptyState from "@/components/EmptyState";
+import MobileInfoField from "@/components/MobileInfoField";
+import PositionBadge from "@/components/PositionBadge";
+import TableHeader from "@/components/TableHeader";
+import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
 import {
@@ -12,6 +17,12 @@ import {
   translateNationality,
 } from "@/lib/translations";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "积分榜",
+  description: "查看当前 F1 赛季车手积分榜和车队积分榜排名、胜场与积分。",
+  alternates: { canonical: "/standings" },
+};
 
 export const revalidate = 300;
 
@@ -221,15 +232,7 @@ function DriverStandingMobileCard({
       href={`/drivers/${standing.Driver.driverId}`}
       className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
-      <svg
-        aria-hidden="true"
-        className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
+      <CardArrow className="absolute right-2 top-2" />
 
       <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge position={standing.position} />
@@ -252,8 +255,8 @@ function DriverStandingMobileCard({
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 text-xs">
-        <StandingMobileField label="胜场" value={standing.wins} />
-        <StandingMobileField label="排名" value={`P${standing.position}`} />
+        <MobileInfoField label="胜场" value={standing.wins} />
+        <MobileInfoField label="排名" value={`P${standing.position}`} />
       </div>
     </Link>
   );
@@ -276,15 +279,7 @@ function ConstructorStandingMobileCard({
       href={`/constructors/${standing.Constructor.constructorId}`}
       className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
-      <svg
-        aria-hidden="true"
-        className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
+      <CardArrow className="absolute right-2 top-2" />
 
       <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge position={standing.position} />
@@ -304,19 +299,10 @@ function ConstructorStandingMobileCard({
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 text-xs">
-        <StandingMobileField label="胜场" value={standing.wins} />
-        <StandingMobileField label="排名" value={`P${standing.position}`} />
+        <MobileInfoField label="胜场" value={standing.wins} />
+        <MobileInfoField label="排名" value={`P${standing.position}`} />
       </div>
     </Link>
-  );
-}
-
-function StandingMobileField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded bg-surface-muted p-1.5">
-      <p className="text-xs text-text-subtle">{label}</p>
-      <p className="mt-0.5 break-words font-medium text-text-primary">{value}</p>
-    </div>
   );
 }
 
@@ -342,38 +328,3 @@ function PointsGapLabel({ gap }: { gap: number | null }) {
   );
 }
 
-function TableHeader({
-  children,
-  align = "left",
-  className = "",
-}: {
-  children: React.ReactNode;
-  align?: "left" | "center" | "right";
-  className?: string;
-}) {
-  const alignClass = align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
-
-  return (
-    <th className={`px-2 py-1.5 text-[10px] font-medium uppercase text-text-muted ${alignClass} ${className}`}>
-      {children}
-    </th>
-  );
-}
-
-function PositionBadge({ position }: { position: string }) {
-  return (
-    <span
-      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-        position === "1"
-          ? "bg-yellow-500 text-black"
-          : position === "2"
-            ? "bg-gray-400 text-black"
-            : position === "3"
-              ? "bg-amber-700 text-white"
-              : "bg-surface-muted text-text-primary"
-      }`}
-    >
-      {position}
-    </span>
-  );
-}

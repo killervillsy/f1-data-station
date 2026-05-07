@@ -90,6 +90,9 @@ function MetricCard({
   );
 }
 
+const initialRefreshDelayMs = 5_000;
+const liveRefreshIntervalMs = 10_000;
+
 export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientProps) {
   const [session, setSession] = useState<LiveSessionSnapshot | null>(
     initialSnapshot.session
@@ -208,8 +211,8 @@ export default function LiveTimingClient({ initialSnapshot }: LiveTimingClientPr
       }
     };
 
-    const timeoutId = window.setTimeout(refreshAutomatically, 0);
-    const intervalId = window.setInterval(refreshAutomatically, 10_000);
+    const timeoutId = window.setTimeout(refreshAutomatically, initialRefreshDelayMs);
+    const intervalId = window.setInterval(refreshAutomatically, liveRefreshIntervalMs);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {

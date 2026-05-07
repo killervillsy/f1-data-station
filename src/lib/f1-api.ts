@@ -13,9 +13,39 @@ import type {
 
 const BASE_URL = "https://api.jolpi.ca/ergast/f1";
 
-async function fetchF1Data<T>(endpoint: string): Promise<T> {
+const f1Cache = {
+  default: 300,
+  current: 300,
+  stable: 3_600,
+  historical: 86_400,
+} as const;
+
+type F1FetchOptions = {
+  revalidate?: number;
+  tags?: string[];
+};
+
+function getSeasonCache(season: string): F1FetchOptions {
+  return season === "current" || season === getCurrentSeason()
+    ? { revalidate: f1Cache.stable, tags: ["f1:schedule", `f1:season:${season}`] }
+    : { revalidate: f1Cache.historical, tags: ["f1:schedule", `f1:season:${season}`] };
+}
+
+function getStandingsCache(season: string): F1FetchOptions {
+  return season === "current" || season === getCurrentSeason()
+    ? { revalidate: f1Cache.current, tags: ["f1:standings", `f1:season:${season}`] }
+    : { revalidate: f1Cache.historical, tags: ["f1:standings", `f1:season:${season}`] };
+}
+
+async function fetchF1Data<T>(
+  endpoint: string,
+  options: F1FetchOptions = {}
+): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}.json`, {
-    next: { revalidate: 300 },
+    next: {
+      revalidate: options.revalidate ?? f1Cache.default,
+      ...(options.tags ? { tags: options.tags } : {}),
+    },
   });
 
   if (!response.ok) {
@@ -33,7 +63,10 @@ export function getCurrentSeason(): string {
 }
 
 export async function getLatestSeason(): Promise<string> {
-  const data = await fetchF1Data<MRData>("/current/driverStandings");
+  const data = await fetchF1Data<MRData>("/current/driverStandings", {
+    revalidate: f1Cache.current,
+    tags: ["f1:standings", "f1:season:current"],
+  });
 
   return (
     data.StandingsTable?.season ??
@@ -154,14 +187,15 @@ function hasSessionOnDate(race: Race, date: string): boolean {
 
 // Get current season races (schedule)
 export async function getCurrentSeasonSchedule(): Promise<Race[]> {
-  const data = await fetchF1Data<MRData>(`/${getCurrentSeason()}`);
+  const season = getCurrentSeason();
+  const data = await fetchF1Data<MRData>(`/${season}`, getSeasonCache(season));
 
   return data.RaceTable?.Races || [];
 }
 
 // Get specific season schedule
 export async function getSeasonSchedule(season: string): Promise<Race[]> {
-  const data = await fetchF1Data<MRData>(`/${season}`);
+  const data = await fetchF1Data<MRData>(`/${season}`, getSeasonCache(season));
 
   return data.RaceTable?.Races || [];
 }
@@ -171,7 +205,10 @@ export async function getRaceResults(
   season: string,
   round: string
 ): Promise<RaceResult[]> {
-  const data = await fetchF1Data<MRData>(`/${season}/${round}/results`);
+  const data = await fetchF1Data<MRData>(`/${season}/${round}/results`, {
+    revalidate: season === "current" ? f1Cache.current : f1Cache.historical,
+    tags: ["f1:results", `f1:season:${season}`, `f1:round:${round}`],
+  });
 
   return getRaceResultsFromRace(data.RaceTable?.Races[0]);
 }
@@ -181,7 +218,10 @@ export async function getQualifyingResults(
   season: string,
   round: string
 ): Promise<QualifyingResult[]> {
-  const data = await fetchF1Data<MRData>(`/${season}/${round}/qualifying`);
+  const data = await fetchF1Data<MRData>(`/${season}/${round}/qualifying`, {
+    revalidate: season === "current" ? f1Cache.current : f1Cache.historical,
+    tags: ["f1:qualifying", `f1:season:${season}`, `f1:round:${round}`],
+  });
 
   return data.RaceTable?.Races[0]?.QualifyingResults || [];
 }
@@ -190,7 +230,10 @@ export async function getSprintResults(
   season: string,
   round: string
 ): Promise<SprintResult[]> {
-  const data = await fetchF1Data<MRData>(`/${season}/${round}/sprint`);
+  const data = await fetchF1Data<MRData>(`/${season}/${round}/sprint`, {
+    revalidate: season === "current" ? f1Cache.current : f1Cache.historical,
+    tags: ["f1:sprint", `f1:season:${season}`, `f1:round:${round}`],
+  });
 
   return data.RaceTable?.Races[0]?.SprintResults || [];
 }
@@ -199,7 +242,10 @@ export async function getSprintResults(
 export async function getDriverStandings(
   season: string = "current"
 ): Promise<DriverStanding[]> {
-  const data = await fetchF1Data<MRData>(`/${season}/driverStandings`);
+  const data = await fetchF1Data<MRData>(
+    `/${season}/driverStandings`,
+    getStandingsCache(season)
+  );
 
   return data.StandingsTable?.StandingsLists[0]?.DriverStandings || [];
 }
@@ -208,14 +254,20 @@ export async function getDriverStandings(
 export async function getConstructorStandings(
   season: string = "current"
 ): Promise<ConstructorStanding[]> {
-  const data = await fetchF1Data<MRData>(`/${season}/constructorStandings`);
+  const data = await fetchF1Data<MRData>(
+    `/${season}/constructorStandings`,
+    getStandingsCache(season)
+  );
 
   return data.StandingsTable?.StandingsLists[0]?.ConstructorStandings || [];
 }
 
 // Get all drivers for a season
 export async function getDrivers(season: string = "current"): Promise<Driver[]> {
-  const data = await fetchF1Data<MRData>(`/${season}/drivers`);
+  const data = await fetchF1Data<MRData>(`/${season}/drivers`, {
+    revalidate: season === "current" ? f1Cache.stable : f1Cache.historical,
+    tags: ["f1:drivers", `f1:season:${season}`],
+  });
 
   return data.DriverTable?.Drivers || [];
 }
@@ -230,7 +282,10 @@ export async function getCurrentConstructorEntries(): Promise<ConstructorStandin
 
 // Get specific driver info
 export async function getDriver(driverId: string): Promise<Driver | null> {
-  const data = await fetchF1Data<MRData>(`/drivers/${driverId}`);
+  const data = await fetchF1Data<MRData>(`/drivers/${driverId}`, {
+    revalidate: f1Cache.historical,
+    tags: ["f1:drivers", `f1:driver:${driverId}`],
+  });
 
   return data.DriverTable?.Drivers[0] || null;
 }
@@ -239,7 +294,10 @@ export async function getDriver(driverId: string): Promise<Driver | null> {
 export async function getConstructors(
   season: string = "current"
 ): Promise<Constructor[]> {
-  const data = await fetchF1Data<MRData>(`/${season}/constructors`);
+  const data = await fetchF1Data<MRData>(`/${season}/constructors`, {
+    revalidate: season === "current" ? f1Cache.stable : f1Cache.historical,
+    tags: ["f1:constructors", `f1:season:${season}`],
+  });
 
   return data.ConstructorTable?.Constructors || [];
 }
@@ -248,7 +306,10 @@ export async function getConstructors(
 export async function getConstructor(
   constructorId: string
 ): Promise<Constructor | null> {
-  const data = await fetchF1Data<MRData>(`/constructors/${constructorId}`);
+  const data = await fetchF1Data<MRData>(`/constructors/${constructorId}`, {
+    revalidate: f1Cache.historical,
+    tags: ["f1:constructors", `f1:constructor:${constructorId}`],
+  });
 
   return data.ConstructorTable?.Constructors[0] || null;
 }
@@ -258,7 +319,10 @@ export async function getLastRaceResults(): Promise<{
   race: Race | null;
   results: RaceResult[];
 }> {
-  const data = await fetchF1Data<MRData>("/current/last/results");
+  const data = await fetchF1Data<MRData>("/current/last/results", {
+    revalidate: f1Cache.current,
+    tags: ["f1:results", "f1:last-race", "f1:season:current"],
+  });
   const race = data.RaceTable?.Races[0];
   const results = getRaceResultsFromRace(race);
 
@@ -268,7 +332,11 @@ export async function getLastRaceResults(): Promise<{
 
   try {
     const pitStopData = await fetchF1Data<MRData & { RaceTable?: PitStopTable }>(
-      `/${race.season}/${race.round}/pitstops`
+      `/${race.season}/${race.round}/pitstops`,
+      {
+        revalidate: f1Cache.current,
+        tags: ["f1:pitstops", `f1:season:${race.season}`, `f1:round:${race.round}`],
+      }
     );
     const pitStops = pitStopData.RaceTable?.Races[0]?.PitStops ?? [];
     const pitStopCounts = new Map<string, number>();
@@ -294,7 +362,8 @@ export async function getLastRaceResults(): Promise<{
 
 // Get next race
 export async function getNextRace(now = new Date()): Promise<Race | null> {
-  const data = await fetchF1Data<MRData>(`/${getCurrentSeason()}`);
+  const season = getCurrentSeason();
+  const data = await fetchF1Data<MRData>(`/${season}`, getSeasonCache(season));
   const races = data.RaceTable?.Races || [];
 
   for (const race of races) {

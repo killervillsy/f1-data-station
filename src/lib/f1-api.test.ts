@@ -49,9 +49,11 @@ test("isRaceInProgress returns true from first practice through the race window"
 
 test("getSprintResults fetches and returns sprint results", async (t) => {
   let requestedUrl = "";
+  let fetchOptions: RequestInit | undefined;
 
-  mockFetch(t, async (input) => {
+  mockFetch(t, async (input, init) => {
     requestedUrl = String(input);
+    fetchOptions = init;
 
     return Response.json({
       MRData: {
@@ -95,13 +97,21 @@ test("getSprintResults fetches and returns sprint results", async (t) => {
   const results = await getSprintResults("2024", "6");
 
   assert.equal(requestedUrl, "https://api.jolpi.ca/ergast/f1/2024/6/sprint.json");
+  assert.deepEqual(fetchOptions?.next, {
+    revalidate: 86_400,
+    tags: ["f1:sprint", "f1:season:2024", "f1:round:6"],
+  });
   assert.equal(results[0]?.Driver.driverId, "verstappen");
   assert.equal(results[0]?.points, "8");
 });
 
 test("getNextRace returns the current race while it is in progress", async (t) => {
-  mockFetch(t, async () =>
-    Response.json({
+  let fetchOptions: RequestInit | undefined;
+
+  mockFetch(t, async (_input, init) => {
+    fetchOptions = init;
+
+    return Response.json({
       MRData: {
         RaceTable: {
           Races: [
@@ -119,10 +129,14 @@ test("getNextRace returns the current race while it is in progress", async (t) =
           ],
         },
       },
-    })
-  );
+    });
+  });
 
   const race = await getNextRace(new Date("2026-04-01T20:30:00Z"));
 
+  assert.deepEqual(fetchOptions?.next, {
+    revalidate: 3_600,
+    tags: ["f1:schedule", "f1:season:2026"],
+  });
   assert.equal(race?.round, "4");
 });

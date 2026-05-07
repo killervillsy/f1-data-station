@@ -1,3 +1,5 @@
+import CardArrow from "@/components/CardArrow";
+import type { Metadata } from "next";
 import DriverHeadshot from "@/components/DriverHeadshot";
 import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
@@ -9,6 +11,12 @@ import {
   translateNationality,
 } from "@/lib/translations";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "车手",
+  description: "浏览当前 F1 赛季车手名单、国籍、所属车队、排名和积分。",
+  alternates: { canonical: "/drivers" },
+};
 
 export const revalidate = 300;
 
@@ -59,7 +67,7 @@ export default async function DriversPage() {
                   <InfoRow label="排名" value={standing ? `P${standing.position}` : "暂无排名"} />
                   <InfoRow label="积分" value={standing ? standing.points : "暂无积分"} />
                 </div>
-                <ClickHint />
+                <CardArrow className="absolute right-2 top-2" />
               </Link>
             );
           })}
@@ -78,16 +86,3 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ClickHint() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red sm:hidden"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}

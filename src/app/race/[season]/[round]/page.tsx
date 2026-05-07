@@ -1,6 +1,13 @@
+import CardArrow from "@/components/CardArrow";
 import DriverHeadshot from "@/components/DriverHeadshot";
+import EmptyState from "@/components/EmptyState";
+import MobileInfoField from "@/components/MobileInfoField";
+import PositionBadge from "@/components/PositionBadge";
+import StatCard from "@/components/StatCard";
+import TableHeader from "@/components/TableHeader";
 import { getDriverHeadshots, getDriverHeadshotUrl } from "@/lib/driver-headshots";
 import {
+  getCurrentSeasonSchedule,
   getQualifyingResults,
   getRaceDisplayDate,
   getRaceDisplayTime,
@@ -18,6 +25,7 @@ import {
   translateRaceName,
   translateRaceStatus,
 } from "@/lib/translations";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -25,21 +33,51 @@ export const dynamicParams = true;
 export const revalidate = 300;
 
 export async function generateStaticParams() {
-  return [];
+  try {
+    const schedule = await getCurrentSeasonSchedule();
+
+    return schedule.map((race) => ({
+      season: race.season,
+      round: race.round,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ season: string; round: string }>;
+}): Promise<Metadata> {
+  const { season, round } = await params;
+  const schedule = await getSeasonSchedule(season);
+  const race = schedule.find((item) => item.round === round);
+
+  if (!race) {
+    return {
+      title: `${season} 赛季第 ${round} 站`,
+      description: "查看 F1 分站比赛信息、赛程安排、排位赛、冲刺赛和正赛结果。",
+    };
+  }
+
+  const raceName = translateRaceName(race.raceName);
+  const circuitName = translateCircuitName(race.Circuit.circuitName);
+  const location = `${translateLocality(race.Circuit.Location.locality)}, ${translateCountry(race.Circuit.Location.country)}`;
+
+  return {
+    title: `${season} ${raceName}`,
+    description: `查看 ${season} 赛季第 ${round} 站 ${raceName} 的赛程、${circuitName} 赛道信息、排位赛、冲刺赛和正赛结果。比赛地点：${location}。`,
+    alternates: { canonical: `/race/${season}/${round}` },
+  };
 }
 
 export default async function RacePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ season: string; round: string }>;
-  searchParams: Promise<{ session?: string | string[] }>;
 }) {
   const { season, round } = await params;
-  const selectedSessionParam = (await searchParams).session;
-  const selectedSessionType = Array.isArray(selectedSessionParam)
-    ? selectedSessionParam[0]
-    : selectedSessionParam;
   const schedule = await getSeasonSchedule(season);
   const raceIndex = schedule.findIndex((item) => item.round === round);
   const race = schedule[raceIndex];
@@ -61,13 +99,7 @@ export default async function RacePage({
     ? translateDriverName(fastest.Driver.givenName, fastest.Driver.familyName)
     : "";
   const weekendSessions = getRaceWeekendSessions(race);
-  const selectedSession = getSelectedSession(
-    weekendSessions,
-    selectedSessionType,
-    results,
-    qualifyingResults,
-    sprintResults
-  );
+  const resultSessions = getResultSessions(weekendSessions);
 
   return (
     <div className="max-w-6xl mx-auto px-2 py-2 sm:px-3">
@@ -89,29 +121,29 @@ export default async function RacePage({
       </div>
 
       <div className="mb-2 grid grid-cols-2 gap-1.5 md:grid-cols-4">
-        <StatCard label="回合" value={race.round} />
-        <StatCard label="赛季" value={race.season} />
-        <StatCard label="参赛" value={results.length || "待公布"} />
-        <StatCard label="圈数" value={results[0]?.laps || "待公布"} />
+        <StatCard align="center" label="回合" value={race.round} />
+        <StatCard align="center" label="赛季" value={race.season} />
+        <StatCard align="center" label="参赛" value={results.length || "待公布"} />
+        <StatCard align="center" label="圈数" value={results[0]?.laps || "待公布"} />
       </div>
 
       <section className="mb-2 rounded-md border border-border bg-surface p-2">
         <h2 className="mb-2 text-base font-bold text-text-primary">周末赛程</h2>
         <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
           {weekendSessions.map((session) => {
-            const isSelected = session.type === selectedSession.type;
+            const hasResults = resultSessions.some((item) => item.type === session.type);
 
             return (
               <Link
                 key={session.label}
-                href={`/race/${season}/${round}?session=${session.type}`}
+                href={hasResults ? `#${session.type}` : `/race/${season}/${round}`}
                 className={`rounded border p-1.5 transition-colors ${
-                  isSelected
-                    ? "border-f1-red bg-f1-red/10"
-                    : "border-transparent bg-surface-muted hover:border-f1-red/60"
+                  hasResults
+                    ? "border-f1-red/40 bg-f1-red/10 hover:border-f1-red"
+                    : "border-transparent bg-surface-muted"
                 }`}
               >
-                <p className={isSelected ? "text-xs text-f1-red" : "text-xs text-text-subtle"}>{session.label}</p>
+                <p className={hasResults ? "text-xs text-f1-red" : "text-xs text-text-subtle"}>{session.label}</p>
                 <p className="mt-0.5 text-xs font-medium text-text-primary">{session.value}</p>
               </Link>
             );
@@ -119,12 +151,17 @@ export default async function RacePage({
         </div>
       </section>
 
-      <SessionResultsSection
-        session={selectedSession}
-        raceResults={results}
-        qualifyingResults={qualifyingResults}
-        sprintResults={sprintResults}
-      />
+      <div className="space-y-2">
+        {resultSessions.map((session) => (
+          <SessionResultsSection
+            key={session.type}
+            session={session}
+            raceResults={results}
+            qualifyingResults={qualifyingResults}
+            sprintResults={sprintResults}
+          />
+        ))}
+      </div>
 
       {fastest?.FastestLap && (
         <div className="mt-2 rounded-md border border-border bg-surface p-2">
@@ -174,49 +211,12 @@ export default async function RacePage({
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-md border border-border bg-surface p-2 text-center">
-      <p className="text-xs text-text-muted">{label}</p>
-      <p className="text-lg font-bold text-text-primary">{value}</p>
-    </div>
-  );
-}
+function getResultSessions(sessions: RaceWeekendSession[]): RaceWeekendSession[] {
+  const supportedSessions = sessions.filter((session) => session.supportsResults);
+  const raceSession = sessions.find((session) => session.type === "race");
 
-function getSelectedSession(
-  sessions: RaceWeekendSession[],
-  selectedType: string | undefined,
-  raceResults: Awaited<ReturnType<typeof getRaceResults>>,
-  qualifyingResults: Awaited<ReturnType<typeof getQualifyingResults>>,
-  sprintResults: Awaited<ReturnType<typeof getSprintResults>>
-): RaceWeekendSession {
-  if (selectedType) {
-    const selected = sessions.find((session) => session.type === selectedType);
-    if (selected) return selected;
-  }
-
-  const hasResults = (type: string) => {
-    switch (type) {
-      case "race":
-        return raceResults.length > 0;
-      case "qualifying":
-        return qualifyingResults.length > 0;
-      case "sprint":
-        return sprintResults.length > 0;
-      default:
-        return false;
-    }
-  };
-
-  const sessionsWithResults = sessions
-    .filter((session) => session.supportsResults && hasResults(session.type))
-    .reverse();
-
-  return (
-    sessionsWithResults[0] ??
-    sessions.find((session) => session.type === "race") ??
-    sessions[0]
-  );
+  if (supportedSessions.length > 0) return supportedSessions.reverse();
+  return raceSession ? [raceSession] : sessions.slice(0, 1);
 }
 
 function SessionResultsSection({
@@ -230,22 +230,24 @@ function SessionResultsSection({
   qualifyingResults: Awaited<ReturnType<typeof getQualifyingResults>>;
   sprintResults: Awaited<ReturnType<typeof getSprintResults>>;
 }) {
+  const sectionId = session.type;
+
   switch (session.type) {
     case "race":
       return raceResults.length > 0 ? (
-        <RaceResultsTable results={raceResults} />
+        <RaceResultsTable id={sectionId} results={raceResults} />
       ) : (
         <EmptyState title="正赛成绩尚未公布" message="比赛存在于赛程中，但当前还没有可用的正赛结果。" />
       );
     case "qualifying":
       return qualifyingResults.length > 0 ? (
-        <QualifyingTable results={qualifyingResults} />
+        <QualifyingTable id={sectionId} results={qualifyingResults} />
       ) : (
         <EmptyState title="排位赛成绩尚未公布" message="该场比赛暂未返回排位赛结果。" />
       );
     case "sprint":
       return sprintResults.length > 0 ? (
-        <RaceResultsTable title="冲刺赛成绩" results={sprintResults} />
+        <RaceResultsTable id={sectionId} title="冲刺赛成绩" results={sprintResults} />
       ) : (
         <EmptyState title="冲刺赛成绩尚未公布" message="该场比赛暂未返回冲刺赛结果。" />
       );
@@ -259,14 +261,16 @@ function SessionResultsSection({
 }
 
 function RaceResultsTable({
+  id,
   results,
   title = "正赛成绩",
 }: {
+  id?: string;
   results: Awaited<ReturnType<typeof getRaceResults>>;
   title?: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-md border border-border bg-surface">
+    <div id={id} className="scroll-mt-12 overflow-hidden rounded-md border border-border bg-surface">
       <h2 className="border-b border-border px-2 py-1.5 text-base font-bold text-text-primary">
         {title}
       </h2>
@@ -342,7 +346,7 @@ function RaceResultMobileCard({
       href={`/drivers/${result.Driver.driverId}`}
       className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
-      <CardArrow />
+      <CardArrow className="absolute right-2 top-2" />
       <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge value={result.positionText || result.position} position={result.position} />
         <div className="min-w-0 flex-1">
@@ -361,24 +365,26 @@ function RaceResultMobileCard({
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 text-xs">
-        <MobileResultField label="发车" value={result.grid} />
-        <MobileResultField label="车号" value={result.number} />
-        <MobileResultField label="圈数" value={result.laps} />
-        <MobileResultField label="时间/状态" value={result.Time?.time || translateRaceStatus(result.status)} />
+        <MobileInfoField label="发车" value={result.grid} />
+        <MobileInfoField label="车号" value={result.number} />
+        <MobileInfoField label="圈数" value={result.laps} />
+        <MobileInfoField label="时间/状态" value={result.Time?.time || translateRaceStatus(result.status)} />
       </div>
     </Link>
   );
 }
 
 function QualifyingTable({
+  id,
   results,
   title = "排位赛成绩",
 }: {
+  id?: string;
   results: Awaited<ReturnType<typeof getQualifyingResults>>;
   title?: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-md border border-border bg-surface">
+    <div id={id} className="scroll-mt-12 overflow-hidden rounded-md border border-border bg-surface">
       <h2 className="border-b border-border px-2 py-1.5 text-base font-bold text-text-primary">
         {title}
       </h2>
@@ -448,7 +454,7 @@ function QualifyingMobileCard({
       href={`/drivers/${result.Driver.driverId}`}
       className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
-      <CardArrow />
+      <CardArrow className="absolute right-2 top-2" />
       <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge value={result.position} position={result.position} />
         <div className="min-w-0 flex-1">
@@ -467,79 +473,11 @@ function QualifyingMobileCard({
       </div>
 
       <div className="grid grid-cols-3 gap-1.5 text-xs">
-        <MobileResultField label="Q1" value={result.Q1 || "--"} />
-        <MobileResultField label="Q2" value={result.Q2 || "--"} />
-        <MobileResultField label="Q3" value={result.Q3 || "--"} />
+        <MobileInfoField label="Q1" value={result.Q1 || "--"} />
+        <MobileInfoField label="Q2" value={result.Q2 || "--"} />
+        <MobileInfoField label="Q3" value={result.Q3 || "--"} />
       </div>
     </Link>
   );
 }
 
-function MobileResultField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded bg-surface-muted p-1.5">
-      <p className="text-xs text-text-subtle">{label}</p>
-      <p className="mt-0.5 break-words font-medium text-text-primary">{value}</p>
-    </div>
-  );
-}
-
-function CardArrow() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}
-
-function TableHeader({
-  children,
-  align = "left",
-  className = "",
-}: {
-  children: React.ReactNode;
-  align?: "left" | "center" | "right";
-  className?: string;
-}) {
-  const alignClass =
-    align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
-
-  return (
-    <th className={`px-2 py-1.5 text-[10px] font-medium uppercase text-text-muted ${alignClass} ${className}`}>
-      {children}
-    </th>
-  );
-}
-
-function PositionBadge({ value, position }: { value: string; position: string }) {
-  return (
-    <span
-      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-        position === "1"
-          ? "bg-yellow-500 text-black"
-          : position === "2"
-            ? "bg-gray-400 text-black"
-            : position === "3"
-              ? "bg-amber-700 text-white"
-              : "bg-surface-muted text-text-primary"
-      }`}
-    >
-      {value}
-    </span>
-  );
-}
-
-function EmptyState({ title, message }: { title: string; message: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-border bg-surface p-4 text-center">
-      <h2 className="text-base font-bold text-text-primary">{title}</h2>
-      <p className="mt-1 text-xs text-text-muted">{message}</p>
-    </div>
-  );
-}

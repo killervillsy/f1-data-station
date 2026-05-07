@@ -78,7 +78,7 @@ export default function Header() {
               alt="F1.Data"
               width={48}
               height={48}
-              priority
+              unoptimized
               className="h-7 w-auto sm:h-8"
             />
             <span className="truncate text-base font-black leading-none tracking-tight text-text-primary sm:text-lg">

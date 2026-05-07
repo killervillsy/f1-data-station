@@ -1,3 +1,9 @@
+import CardArrow from "@/components/CardArrow";
+import EmptyState from "@/components/EmptyState";
+import MobileInfoField from "@/components/MobileInfoField";
+import PositionBadge from "@/components/PositionBadge";
+import TableHeader from "@/components/TableHeader";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   getConstructorStandings,
@@ -18,6 +24,12 @@ import {
   translateRaceName,
   translateRaceStatus,
 } from "@/lib/translations";
+
+export const metadata: Metadata = {
+  title: "首页",
+  description: "查看 F1 下一场比赛、上站成绩、车手积分榜和车队积分榜摘要。",
+  alternates: { canonical: "/" },
+};
 
 export default async function Home() {
   const [nextRace, lastRace, driverStandings, constructorStandings] =
@@ -188,15 +200,7 @@ function RaceResultMobileCard({
       href={`/drivers/${result.Driver.driverId}`}
       className="group relative block p-2 transition-colors hover:bg-hover-surface"
     >
-      <svg
-        aria-hidden="true"
-        className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
+      <CardArrow className="absolute right-2 top-2" />
 
       <div className="mb-2 flex items-start gap-2 pr-6">
         <PositionBadge position={result.position} />
@@ -216,28 +220,21 @@ function RaceResultMobileCard({
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 text-xs">
-        <MobileResultField label="时间" value={result.Time?.time || translateRaceStatus(result.status)} />
-        <MobileResultField label="最快圈速" value={result.FastestLap?.Time.time ?? "--"} />
-        <MobileResultField label="进站" value={formatPitStops(result.pitStops)} />
-        <MobileResultField label="起" value={formatGridPosition(result.grid)} />
-        <div className="rounded bg-surface-muted p-1.5">
-          <p className="text-xs text-text-subtle">停</p>
-          <div className="mt-1 flex items-center gap-2 text-text-primary">
-            <span className="font-medium">{formatFinishPosition(result.position)}</span>
-            {finishChange}
-          </div>
-        </div>
+        <MobileInfoField label="时间" value={result.Time?.time || translateRaceStatus(result.status)} />
+        <MobileInfoField label="最快圈速" value={result.FastestLap?.Time.time ?? "--"} />
+        <MobileInfoField label="进站" value={formatPitStops(result.pitStops)} />
+        <MobileInfoField label="起" value={formatGridPosition(result.grid)} />
+        <MobileInfoField
+          label="停"
+          value={
+            <span className="flex items-center gap-2">
+              <span>{formatFinishPosition(result.position)}</span>
+              {finishChange}
+            </span>
+          }
+        />
       </div>
     </Link>
-  );
-}
-
-function MobileResultField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded bg-surface-muted p-1.5">
-      <p className="text-xs text-text-subtle">{label}</p>
-      <p className="mt-0.5 break-words font-medium text-text-primary">{value}</p>
-    </div>
   );
 }
 
@@ -300,15 +297,7 @@ function StandingsPreview({
                   href={href}
                   className="group relative flex items-center justify-between px-2 py-1.5 pr-7 hover:bg-hover-surface"
                 >
-                  <svg
-                    aria-hidden="true"
-                    className="absolute right-2 top-2 h-4 w-4 text-text-muted transition-colors group-hover:text-f1-red sm:hidden"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <CardArrow className="absolute right-2 top-2 sm:hidden" />
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="w-6 shrink-0 text-center text-text-muted font-medium">
                       {standing.position}
@@ -387,42 +376,3 @@ function PointsGapLabel({ gap }: { gap: number | null }) {
   );
 }
 
-function TableHeader({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <th className={`px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-wide text-text-muted ${className}`}>
-      {children}
-    </th>
-  );
-}
-
-function PositionBadge({ position }: { position: string }) {
-  return (
-    <span
-      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-        position === "1"
-          ? "bg-yellow-500 text-black"
-          : position === "2"
-            ? "bg-gray-400 text-black"
-            : position === "3"
-              ? "bg-amber-700 text-white"
-              : "bg-surface-muted text-text-primary"
-      }`}
-    >
-      {position}
-    </span>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-text-muted">
-      {message}
-    </div>
-  );
-}
