@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
+import ExternalNewsLink from "./ExternalNewsLink";
 import { fetchF1News, type NewsResult } from "@/lib/news-api";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -46,47 +47,11 @@ function NewsContent({ news }: { news: Extract<NewsResult, { ok: true }> }) {
   return (
     <section className="grid grid-cols-1 gap-2 md:grid-cols-2">
       {news.articles.map((article) => (
-        <a
+        <ExternalNewsLink
           key={article.url}
-          href={article.url}
-          target="_blank"
-          rel="noreferrer"
-          className="group flex h-full overflow-hidden rounded-md border border-border bg-surface transition-all hover:border-f1-red/50 hover:bg-hover-surface"
-        >
-          {article.imageUrl ? (
-            <div className="hidden w-32 shrink-0 overflow-hidden bg-surface-muted sm:block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={article.imageUrl}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-          ) : null}
-          <div className="flex min-w-0 flex-1 flex-col p-2">
-            <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-text-subtle">
-              <span className="rounded-full bg-surface-muted px-2 py-0.5 font-medium text-text-secondary">
-                {article.source}
-              </span>
-              <time dateTime={article.publishedAt || undefined}>
-                {formatPublishedAt(article.publishedAt)}
-              </time>
-            </div>
-            <h2 className="break-words text-sm font-bold leading-snug text-text-primary transition-colors group-hover:text-f1-red">
-              {article.title}
-            </h2>
-            {article.description && (
-              <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-muted">
-                {article.description}
-              </p>
-            )}
-            <span className="mt-auto inline-flex pt-2 text-xs font-semibold text-f1-red">
-              阅读原文
-            </span>
-          </div>
-        </a>
+          article={article}
+          formattedPublishedAt={formatPublishedAt(article.publishedAt)}
+        />
       ))}
     </section>
   );
