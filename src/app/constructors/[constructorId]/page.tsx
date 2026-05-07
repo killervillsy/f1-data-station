@@ -65,6 +65,7 @@ export default async function ConstructorPage({
             size={72}
             fallbackClassName="bg-white/20"
             textClassName="text-white font-bold text-xl"
+            loading="eager"
           />
           <div className="flex-1">
             <h1 className="break-words text-xl font-bold text-white sm:text-2xl">

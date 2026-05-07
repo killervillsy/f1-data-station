@@ -1,4 +1,6 @@
 import DriverHeadshot from "@/components/DriverHeadshot";
+import EmptyState from "@/components/EmptyState";
+import PageHeader from "@/components/PageHeader";
 import { getDriverHeadshots, getDriverHeadshotUrl } from "@/lib/driver-headshots";
 import { getCurrentDriverEntries, getLatestSeason } from "@/lib/f1-api";
 import {
@@ -19,9 +21,7 @@ export default async function DriversPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-2 py-2 sm:px-3">
-      <h1 className="mb-2 text-xl font-bold text-text-primary">
-        {latestSeason} 赛季车手
-      </h1>
+      <PageHeader title={`${latestSeason} 赛季车手`} />
 
       {standings.length === 0 ? (
         <EmptyState message="暂无当前赛季车手" />
@@ -89,13 +89,5 @@ function ClickHint() {
     >
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
     </svg>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-text-muted">
-      {message}
-    </div>
   );
 }

@@ -4,6 +4,16 @@ import type { LiveTimingSnapshot } from "@/types/openf1";
 
 export const dynamic = "force-dynamic";
 
+const LIVE_SNAPSHOT_CACHE_TTL_MS = 5_000;
+
+const liveSnapshotCache = new Map<
+  string,
+  {
+    expiresAt: number;
+    promise: Promise<LiveTimingSnapshot>;
+  }
+>();
+
 function fallbackSnapshot(error?: string): LiveTimingSnapshot {
   return {
     session: null,
@@ -12,6 +22,32 @@ function fallbackSnapshot(error?: string): LiveTimingSnapshot {
     updatedAt: new Date().toISOString(),
     ...(error ? { error } : {}),
   };
+}
+
+function getCachedLiveSnapshot(driverNumber: number | null): Promise<LiveTimingSnapshot> {
+  const cacheKey = String(driverNumber ?? "default");
+  const cachedSnapshot = liveSnapshotCache.get(cacheKey);
+
+  if (cachedSnapshot && cachedSnapshot.expiresAt > Date.now()) {
+    return cachedSnapshot.promise;
+  }
+
+  const promise = getF1LiveTimingSnapshot(driverNumber).then((snapshot) =>
+    localizeLiveTimingSnapshot(snapshot),
+  );
+
+  liveSnapshotCache.set(cacheKey, {
+    expiresAt: Date.now() + LIVE_SNAPSHOT_CACHE_TTL_MS,
+    promise,
+  });
+
+  promise.catch(() => {
+    if (liveSnapshotCache.get(cacheKey)?.promise === promise) {
+      liveSnapshotCache.delete(cacheKey);
+    }
+  });
+
+  return promise;
 }
 
 export async function GET(request: Request) {
@@ -25,9 +61,9 @@ export async function GET(request: Request) {
       parsedDriverNumber > 0
         ? parsedDriverNumber
         : null;
-    const snapshot = await getF1LiveTimingSnapshot(driverNumber);
+    const snapshot = await getCachedLiveSnapshot(driverNumber);
 
-    return Response.json(localizeLiveTimingSnapshot(snapshot));
+    return Response.json(snapshot);
   } catch {
     return Response.json(fallbackSnapshot("F1 官方实时计时数据加载失败"));
   }

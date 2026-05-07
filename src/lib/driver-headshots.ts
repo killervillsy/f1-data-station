@@ -1,3 +1,4 @@
+import { getOptimizedF1MediaUrl } from "@/lib/f1-media";
 import { getLatestSession, getSessionDrivers } from "@/lib/openf1-api";
 import type { Driver } from "@/types/f1";
 import type { OpenF1Driver } from "@/types/openf1";
@@ -46,7 +47,7 @@ export async function getDriverHeadshots(): Promise<DriverHeadshotMap> {
   for (const driver of drivers) {
     if (!driver.headshot_url) continue;
 
-    const headshotUrl = getHighestQualityF1MediaUrl(driver.headshot_url);
+    const headshotUrl = getOptimizedF1MediaUrl(driver.headshot_url);
 
     for (const key of getOpenF1DriverKeys(driver)) {
       headshots.set(key, headshotUrl);
@@ -95,14 +96,7 @@ function getF1DriverKeys(driver: Driver): string[] {
 }
 
 function getCurrentDriverHeadshotUrl(headshot: CurrentDriverHeadshot): string {
-  return `https://media.formula1.com/image/upload/c_fit,w_1600/q_100/d_common:f1:2026:fallback:driver:2026fallbackdriverright.webp/v1740000001/common/f1/2026/${headshot.teamPath}/${headshot.imageCode}/${headshot.fileName}.webp`;
-}
-
-function getHighestQualityF1MediaUrl(url: string): string {
-  return url
-    .replace(/c_[^,/]+/g, "c_fit")
-    .replace(/w_\d+/g, "w_1600")
-    .replace(/q_[^,/]+/g, "q_100");
+  return `https://media.formula1.com/image/upload/c_fit,w_384/q_auto/d_common:f1:2026:fallback:driver:2026fallbackdriverright.webp/v1740000001/common/f1/2026/${headshot.teamPath}/${headshot.imageCode}/${headshot.fileName}.webp`;
 }
 
 function normalizeDriverKey(value: string | undefined): string[] {

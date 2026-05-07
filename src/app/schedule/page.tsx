@@ -1,3 +1,6 @@
+import EmptyState from "@/components/EmptyState";
+import PageHeader from "@/components/PageHeader";
+import StatCard from "@/components/StatCard";
 import { getCalendarChanges } from "@/lib/calendar-changes";
 import {
   classifyRaceStatus,
@@ -37,15 +40,13 @@ export default async function SchedulePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-2 py-2 sm:px-3">
-      <h1 className="mb-2 text-xl font-bold text-text-primary">
-        {season} 赛季赛程
-      </h1>
+      <PageHeader title={`${season} 赛季赛程`} />
 
       <div className="mb-2 grid grid-cols-2 gap-1.5 md:grid-cols-4">
         <StatCard label="总场次" value={races.length} />
         <StatCard label="已完成" value={grouped.completed.length} />
         <StatCard label="剩余场次" value={grouped.upcoming.length} />
-        <StatCard label="今日赛事" value={grouped.today.length} accent />
+        <StatCard label="今日赛事" value={grouped.today.length} tone="red" />
       </div>
 
       {calendarChanges.length > 0 ? <CalendarChanges changes={calendarChanges} /> : null}
@@ -101,25 +102,6 @@ function CalendarChanges({
         ))}
       </div>
     </section>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  accent = false,
-}: {
-  label: string;
-  value: number;
-  accent?: boolean;
-}) {
-  return (
-    <div className="rounded-md border border-border bg-surface p-2">
-      <p className="text-xs text-text-muted">{label}</p>
-      <p className={`text-lg font-bold ${accent ? "text-f1-red" : "text-text-primary"}`}>
-        {value}
-      </p>
-    </div>
   );
 }
 
@@ -230,14 +212,6 @@ function RaceWeekendSchedule({ race }: { race: Race }) {
           <p className="mt-0.5 text-xs font-medium text-text-primary">{session.value}</p>
         </div>
       ))}
-    </div>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-text-muted">
-      {message}
     </div>
   );
 }

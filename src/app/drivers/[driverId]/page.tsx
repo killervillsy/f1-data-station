@@ -86,6 +86,7 @@ export default async function DriverPage({
             size={72}
             fallbackClassName="bg-white/20"
             textClassName="text-white font-bold text-xl"
+            loading="eager"
           />
           <div className="flex-1">
             <p className="mb-1 text-xs text-white/80">

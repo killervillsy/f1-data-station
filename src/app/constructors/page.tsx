@@ -1,4 +1,6 @@
 import ConstructorLogo from "@/components/ConstructorLogo";
+import EmptyState from "@/components/EmptyState";
+import PageHeader from "@/components/PageHeader";
 import { getConstructorLogoUrl } from "@/lib/constructor-logos";
 import {
   getCurrentConstructorEntries,
@@ -20,9 +22,7 @@ export default async function ConstructorsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-2 py-2 sm:px-3">
-      <h1 className="mb-2 text-xl font-bold text-text-primary">
-        {latestSeason} 赛季车队
-      </h1>
+      <PageHeader title={`${latestSeason} 赛季车队`} />
 
       {standings.length === 0 ? (
         <EmptyState message="暂无当前赛季车队" />
@@ -79,14 +79,6 @@ function MiniStat({ label, value }: { label: string; value: string }) {
     <div>
       <p className="text-text-subtle">{label}</p>
       <p className="text-sm font-bold text-text-primary">{value}</p>
-    </div>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-text-muted">
-      {message}
     </div>
   );
 }

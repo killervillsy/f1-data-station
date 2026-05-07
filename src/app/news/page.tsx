@@ -1,3 +1,5 @@
+import EmptyState from "@/components/EmptyState";
+import PageHeader from "@/components/PageHeader";
 import { fetchF1News, type NewsResult } from "@/lib/news-api";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -11,19 +13,14 @@ export default async function NewsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-2 py-2 sm:px-3">
-      <div className="mb-2 flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-text-primary">
-            F1 资讯
-          </h1>
-          <p className="mt-0.5 text-xs text-text-muted">
-            汇总 Formula 1 最新报道、围场动态与比赛相关新闻。
-          </p>
-        </div>
+      <PageHeader
+        title="F1 资讯"
+        description="汇总 Formula 1 最新报道、围场动态与比赛相关新闻。"
+      >
         {news.ok && news.articles.length > 0 ? (
           <p className="text-xs text-text-subtle">共 {news.articles.length} 条</p>
         ) : null}
-      </div>
+      </PageHeader>
 
       {news.ok ? (
         <NewsContent news={news} />
@@ -88,14 +85,6 @@ function NewsContent({ news }: { news: Extract<NewsResult, { ok: true }> }) {
 
 function NewsError({ message }: { message: string }) {
   return <EmptyState message={message} />;
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-text-muted">
-      {message}
-    </div>
-  );
 }
 
 function getErrorMessage(

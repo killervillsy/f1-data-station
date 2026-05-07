@@ -1,7 +1,4 @@
-"use client";
-
-import Image from "next/image";
-import { useState } from "react";
+import MappedImage from "@/components/MappedImage";
 
 type DriverHeadshotProps = {
   src?: string;
@@ -11,6 +8,7 @@ type DriverHeadshotProps = {
   className?: string;
   fallbackClassName?: string;
   textClassName?: string;
+  loading?: "eager" | "lazy";
 };
 
 export default function DriverHeadshot({
@@ -21,30 +19,20 @@ export default function DriverHeadshot({
   className = "",
   fallbackClassName = "bg-gradient-to-br from-f1-red to-red-700",
   textClassName = "text-white font-bold text-lg",
+  loading,
 }: DriverHeadshotProps) {
-  const [hasError, setHasError] = useState(false);
-  const baseClassName = `relative shrink-0 overflow-hidden rounded-full flex items-center justify-center ${className}`;
-  const style = { width: size, height: size };
-
-  if (!src || hasError) {
-    return (
-      <div className={`${baseClassName} ${fallbackClassName}`} style={style}>
-        <span className={textClassName}>{fallbackText}</span>
-      </div>
-    );
-  }
-
   return (
-    <div className={`${baseClassName} bg-surface-muted`} style={style}>
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes={`${size * 4}px`}
-        unoptimized
-        className="origin-top scale-[1.75] object-cover object-top"
-        onError={() => setHasError(true)}
-      />
-    </div>
+    <MappedImage
+      src={src}
+      alt={alt}
+      fallbackText={fallbackText}
+      size={size}
+      className={`rounded-full ${className}`}
+      fallbackClassName={fallbackClassName}
+      textClassName={textClassName}
+      imageWrapperClassName="bg-surface-muted"
+      imageClassName="origin-top scale-[1.75] object-cover object-top"
+      loading={loading}
+    />
   );
 }

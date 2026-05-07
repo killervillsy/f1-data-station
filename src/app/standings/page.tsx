@@ -1,3 +1,6 @@
+import EmptyState from "@/components/EmptyState";
+import PageHeader from "@/components/PageHeader";
+import StatCard from "@/components/StatCard";
 import {
   getConstructorStandings,
   getCurrentSeason,
@@ -22,12 +25,10 @@ export default async function StandingsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-2 py-2 sm:px-3">
-      <h1 className="mb-2 text-xl font-bold text-text-primary">
-        {getCurrentSeason()} 积分榜
-      </h1>
+      <PageHeader title={`${getCurrentSeason()} 积分榜`} />
 
       <div className="mb-2 grid grid-cols-1 gap-1.5 md:grid-cols-3">
-        <SummaryCard
+        <StatCard
           label="领先车手"
           value={
             leadingDriver
@@ -36,12 +37,12 @@ export default async function StandingsPage() {
           }
           subValue={leadingDriver ? `${leadingDriver.points} 积分` : undefined}
         />
-        <SummaryCard
+        <StatCard
           label="领先车队"
           value={leadingConstructor ? translateConstructorName(leadingConstructor.Constructor.name) : "尚未公布"}
           subValue={leadingConstructor ? `${leadingConstructor.points} 积分` : undefined}
         />
-        <SummaryCard
+        <StatCard
           label="榜单规模"
           value={`${driverStandings.length} 位车手`}
           subValue={`${constructorStandings.length} 支车队`}
@@ -341,24 +342,6 @@ function PointsGapLabel({ gap }: { gap: number | null }) {
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-  subValue,
-}: {
-  label: string;
-  value: string;
-  subValue?: string;
-}) {
-  return (
-    <div className="rounded-md border border-border bg-surface p-2">
-      <p className="text-xs text-text-muted">{label}</p>
-      <p className="mt-1 text-base font-bold text-text-primary">{value}</p>
-      {subValue ? <p className="mt-0.5 text-xs text-text-subtle">{subValue}</p> : null}
-    </div>
-  );
-}
-
 function TableHeader({
   children,
   align = "left",
@@ -392,13 +375,5 @@ function PositionBadge({ position }: { position: string }) {
     >
       {position}
     </span>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-text-muted">
-      {message}
-    </div>
   );
 }

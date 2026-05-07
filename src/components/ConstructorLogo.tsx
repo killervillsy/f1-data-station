@@ -1,7 +1,4 @@
-"use client";
-
-import Image from "next/image";
-import { useState } from "react";
+import MappedImage from "@/components/MappedImage";
 
 type ConstructorLogoProps = {
   src?: string;
@@ -11,6 +8,7 @@ type ConstructorLogoProps = {
   className?: string;
   fallbackClassName?: string;
   textClassName?: string;
+  loading?: "eager" | "lazy";
 };
 
 export default function ConstructorLogo({
@@ -21,30 +19,20 @@ export default function ConstructorLogo({
   className = "",
   fallbackClassName = "bg-gradient-to-br from-f1-red to-red-700",
   textClassName = "text-white font-bold text-lg",
+  loading,
 }: ConstructorLogoProps) {
-  const [hasError, setHasError] = useState(false);
-  const baseClassName = `relative shrink-0 overflow-hidden rounded-xl flex items-center justify-center ${className}`;
-  const style = { width: size, height: size };
-
-  if (!src || hasError) {
-    return (
-      <div className={`${baseClassName} ${fallbackClassName}`} style={style}>
-        <span className={textClassName}>{fallbackText}</span>
-      </div>
-    );
-  }
-
   return (
-    <div className={`${baseClassName} bg-white/90 p-2 ring-1 ring-black/10`} style={style}>
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes={`${size * 4}px`}
-        unoptimized
-        className="object-contain"
-        onError={() => setHasError(true)}
-      />
-    </div>
+    <MappedImage
+      src={src}
+      alt={alt}
+      fallbackText={fallbackText}
+      size={size}
+      className={`rounded-xl ${className}`}
+      fallbackClassName={fallbackClassName}
+      textClassName={textClassName}
+      imageWrapperClassName="bg-white/90 p-2 ring-1 ring-black/10"
+      imageClassName="object-contain"
+      loading={loading}
+    />
   );
 }
