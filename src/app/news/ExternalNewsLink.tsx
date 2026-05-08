@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { NewsArticle } from "@/lib/news-api";
 
 export default function ExternalNewsLink({
@@ -11,8 +11,51 @@ export default function ExternalNewsLink({
   formattedPublishedAt: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const [isCopying, setIsCopying] = useState(false);
+  const copyLockRef = useRef(false);
   const titleId = useId();
   const descriptionId = useId();
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const scrollY = window.scrollY;
+    const previousOverflow = document.body.style.overflow;
+    const previousPosition = document.body.style.position;
+    const previousTop = document.body.style.top;
+    const previousWidth = document.body.style.width;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.position = previousPosition;
+      document.body.style.top = previousTop;
+      document.body.style.width = previousWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
+
+  function closeDialog() {
+    setIsOpen(false);
+    setCopyStatus("idle");
+    setIsCopying(false);
+    copyLockRef.current = false;
+  }
+
+  async function copyUrl() {
+    if (copyLockRef.current) return;
+
+    copyLockRef.current = true;
+    setIsCopying(true);
+    const copied = await copyText(article.url);
+    setCopyStatus(copied ? "copied" : "failed");
+    setIsCopying(false);
+  }
 
   return (
     <>
@@ -61,7 +104,9 @@ export default function ExternalNewsLink({
           aria-modal="true"
           aria-labelledby={titleId}
           aria-describedby={descriptionId}
-          onClick={() => setIsOpen(false)}
+          onClick={() => closeDialog()}
+          onWheel={(event) => event.preventDefault()}
+          onTouchMove={(event) => event.preventDefault()}
         >
           <div
             className="w-full max-w-md overflow-hidden rounded-xl border border-border bg-surface shadow-2xl shadow-black/30"
@@ -69,7 +114,7 @@ export default function ExternalNewsLink({
           >
             <div className="border-b border-border bg-surface-muted px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-f1-red">
-                External Link
+                F1.Data
               </p>
               <h3 id={titleId} className="mt-1 text-base font-bold text-text-primary">
                 即将跳转到外部网页
@@ -79,16 +124,35 @@ export default function ExternalNewsLink({
               <p id={descriptionId} className="text-sm leading-6 text-text-secondary">
                 你将离开 F1.Data，前往第三方资讯来源阅读原文。请确认目标网站后继续访问。
               </p>
-              <div className="rounded-md border border-border bg-background px-3 py-2 text-xs leading-5 text-text-muted">
-                <p className="font-semibold text-text-secondary">{article.source}</p>
-                <p className="mt-1 break-all">{article.url}</p>
-              </div>
+              <button
+                type="button"
+                onClick={copyUrl}
+                className={`w-full cursor-pointer rounded-md border bg-background px-3 py-2 text-left text-xs leading-5 text-text-muted transition-all duration-200 hover:border-f1-red/50 hover:bg-hover-surface active:scale-[0.99] ${
+                  copyStatus === "copied"
+                    ? "border-f1-red/60 shadow-[0_0_0_3px_rgb(225_6_0_/_0.12)]"
+                    : "border-border"
+                }`}
+                aria-label="复制外部网页链接"
+                aria-busy={isCopying}
+              >
+                <span className="flex items-center justify-between gap-3 font-semibold text-text-secondary">
+                  <span>{article.source}</span>
+                  <span className="shrink-0 text-[11px] font-bold text-f1-red">
+                    {copyStatus === "copied"
+                      ? "已复制"
+                      : copyStatus === "failed"
+                        ? "长按复制"
+                        : "点击复制"}
+                  </span>
+                </span>
+                <span className="mt-1 block break-all">{article.url}</span>
+              </button>
             </div>
             <div className="flex flex-col-reverse gap-2 border-t border-border px-4 py-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
-                className="rounded-md border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-hover-surface hover:text-text-primary"
+                onClick={() => closeDialog()}
+                className="cursor-pointer rounded-md border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-hover-surface hover:text-text-primary"
               >
                 取消
               </button>
@@ -96,7 +160,7 @@ export default function ExternalNewsLink({
                 href={article.url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-md bg-f1-red px-4 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                className="cursor-pointer rounded-md bg-f1-red px-4 py-2 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
               >
                 继续访问
               </a>
@@ -106,4 +170,30 @@ export default function ExternalNewsLink({
       ) : null}
     </>
   );
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.setAttribute("readonly", "");
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    textArea.setSelectionRange(0, textArea.value.length);
+    const copied = document.execCommand("copy");
+    textArea.remove();
+    return copied;
+  } catch {
+    return false;
+  }
 }
